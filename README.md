@@ -362,6 +362,10 @@ asset URLs need revalidation; avoid immutable caching for them.
 
 `pnpm verify` runs `check`, `test`, `test:build`, `build`, `verify:output` and
 `lint:html` in order, stopping on a failure. Configure `site` before running it.
+
+The build tests exercise package removal too. That step may need registry access
+even after a frozen install, because pnpm validates dependency metadata.
+
 For a one-off build origin or output override, run the build and output checks
 as separate commands, alongside the type and test checks:
 
