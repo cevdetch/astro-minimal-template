@@ -1,42 +1,44 @@
-# Astro Starter Kit: Minimal
+# Astro Minimal Template
+
+A minimal Astro starter with strictest TypeScript and replaceable neutral assets.
+Start with `src/pages/index.astro` and add pages as your project grows.
+
+## Requirements
+
+- Node.js 24.8.0 or newer
+- pnpm 12.3.4, pinned in `package.json`
+
+## Setup
+
+Run these commands from the project root:
 
 ```sh
-pnpm create astro@latest -- --template minimal
+pnpm install --frozen-lockfile
+pnpm dev --background
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Open the local URL from the server output. Use `pnpm dev status`,
+`pnpm dev logs`, and `pnpm dev stop` to manage the background server.
 
-## 🚀 Project Structure
+## Commands
 
-Inside of your Astro project, you'll see the following folders and files:
+| Command | Purpose |
+| --- | --- |
+| `pnpm check` | Check Astro and TypeScript files for errors |
+| `pnpm build` | Build the static site into `dist/` |
+| `pnpm preview` | Preview the production build |
+| `pnpm astro --help` | Read Astro CLI help |
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+Run `pnpm check` and `pnpm build` before committing changes. Astro's build command
+does not run the type checker.
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Project files
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Add routes in `src/pages/`, place static assets in `public/`, and configure Astro
+in `astro.config.mjs`. TypeScript uses `astro/tsconfigs/strictest`.
 
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+See the [Astro documentation](https://docs.astro.build) for routing, components,
+and configuration.
 
 ## Starter assets
 
@@ -50,8 +52,8 @@ static `icon.svg`, `apple-touch-icon.png` at 180×180, and opaque, padded
 starter page; use them when adding your project's logo or installation metadata.
 
 The checked-in assets need no image-generation package or external checkout to
-build. Replacing an asset keeps the rest of the starter independent of its authoring tool.
+build.
 
-## 👀 Want to learn more?
+## License
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+[MIT](LICENSE). Replace the starter assets with your own branding when needed.
