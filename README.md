@@ -12,6 +12,9 @@ with no application JavaScript, author CSS or downloaded webfont.
 
 ## Setup
 
+Create a repository with [Use this template](https://github.com/cevdetch/astro-minimal-template/generate),
+then clone your copy.
+
 Run these commands from the project root:
 
 ```sh
@@ -44,13 +47,14 @@ build command alone does not run the type checker or tests.
 
 ## Production URL
 
-Set `site` in `astro.config.mjs` to your production origin before building. For
-this project, the origin is `https://astro-minimal-template.cevdet.ch`. Add it to
-the existing configuration, preserving its imports and integration order:
+Uncomment `site` in `astro.config.mjs` and replace `https://example.com` with your
+production origin before building, or supply it with `--site`. The starter keeps
+this value unset so copied projects do not inherit another site's canonical URLs.
+Preserve the existing imports and integration order:
 
 ```js
 export default defineConfig({
-  site: 'https://astro-minimal-template.cevdet.ch',
+  site: 'https://example.com',
   integrations: [
     siteValidation(),
     indexing.collect,
@@ -61,8 +65,9 @@ export default defineConfig({
 });
 ```
 
-Use your own domain when copying the template. A build fails if `site` is missing
-or includes credentials, a path, a query, or a fragment. HTTP and HTTPS origins
+`https://example.com` is a documentation example; replace it with your domain.
+A build fails if `site` is missing or includes credentials, a path, a query, or
+a fragment. HTTP and HTTPS origins
 may include a port and a root slash. Development works without `site`.
 
 For a subpath deployment, set `base: '/project/'` alongside the origin. Leave
@@ -72,7 +77,7 @@ For a subpath deployment, set `base: '/project/'` alongside the origin. Leave
 You can override the origin for one build without editing configuration:
 
 ```sh
-pnpm build --site https://astro-minimal-template.cevdet.ch
+pnpm build --site https://example.com
 ```
 
 The typed helpers in `src/lib/seo.ts` resolve relative metadata URLs against the
@@ -80,6 +85,28 @@ project root, including `base`. A leading `/` uses the domain root; an absolute
 URL keeps its own origin. Explicit queries remain intact. Canonical URLs reject
 fragments; page URLs discard request queries and fragments. The helpers validate
 URL syntax without fetching the target.
+
+### Cloudflare Pages
+
+For this static starter, connect your repository through the
+[Cloudflare Pages dashboard](https://developers.cloudflare.com/pages/framework-guides/deploy-an-astro-site/#deploy-via-the-cloudflare-dashboard).
+Use these build settings, replacing the example origin:
+
+| Setting | Value |
+| --- | --- |
+| Production branch | `main` |
+| Build command | `pnpm build --site https://example.com && pnpm verify:output && pnpm lint:html` |
+| Build output directory | `dist` |
+| `NODE_VERSION` | `24.8.0` |
+| `PNPM_VERSION` | `12.3.4`, matching `packageManager` |
+
+Cloudflare documents these toolchain overrides in its
+[build image settings](https://developers.cloudflare.com/pages/configuration/build-image/#override-default-versions).
+If you set the real `site` in `astro.config.mjs`, the build command can start with
+`pnpm build` instead. Keep the production origin for preview builds too; set
+`SITE_NOINDEX=true` in Cloudflare's preview environment to add noindex metadata.
+Leave it unset for production. Add your domain in the project's custom-domain
+settings; the `site` value controls generated URLs and does not configure DNS.
 
 ## Page metadata
 
@@ -234,7 +261,7 @@ disablement or a switch to a manual image.
 Set `SITE_NOINDEX=true` when building a preview that search engines should not index:
 
 ```sh
-SITE_NOINDEX=true pnpm build --site https://astro-minimal-template.cevdet.ch
+SITE_NOINDEX=true pnpm build --site https://example.com
 ```
 
 An unset value defaults to false. When set, use the exact string `true` or `false`;
@@ -309,6 +336,24 @@ static `icon.svg`, `apple-touch-icon.png` at 180×180, and opaque, padded
 `icon-192.png` and `icon-512.png`. These extra assets have no declarations in the
 starter page; use them when adding your project's logo or installation metadata.
 
+To replace the set, use [favcon](https://favcon.cevdet.ch), the favicon utility
+by cevdetch. Generate the files from your own SVG and copy them into `public/`,
+replacing the existing files with the same names:
+
+```text
+logo.svg
+icon.svg
+favicon.ico
+apple-touch-icon.png
+icon-192.png
+icon-512.png
+```
+
+The filenames match favcon's output. Keep the existing ICO declaration for the
+default page; add Apple and manifest links only if your project needs them, using
+the optional installation recipe below. Generating the assets requires no
+favcon dependency or integration in this starter.
+
 The checked-in assets need no image-generation package or external checkout to
 build. After replacing an icon, check browser and host caches. These unversioned
 asset URLs need revalidation; avoid immutable caching for them.
@@ -321,7 +366,7 @@ For a one-off build origin or output override, run the build and output checks
 as separate commands, alongside the type and test checks:
 
 ```sh
-pnpm build --site https://astro-minimal-template.cevdet.ch --base /project/ --outDir ./site-output/
+pnpm build --site https://example.com --base /project/ --outDir ./site-output/
 pnpm verify:output
 pnpm lint:html
 ```
@@ -423,6 +468,11 @@ HTTPS; localhost and loopback addresses support local checks. Installation UI an
 support vary by browser and platform; see the
 [manifest installation requirements](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable).
 Offline behavior requires a separate implementation; this recipe adds metadata.
+
+## Maintainer
+
+Created and maintained by [Cevdet](https://cevdet.ch/)
+([@cevdetch](https://github.com/cevdetch)).
 
 ## License
 

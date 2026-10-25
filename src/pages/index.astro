@@ -2,12 +2,44 @@
 import Layout from '../layouts/Layout.astro';
 
 const title = 'Astro Minimal Template';
-const description = 'A minimal starting point for your next website.';
+const description = 'A minimal Astro starter with strictest TypeScript, shared metadata, automatic social images and browser-native styling.';
 ---
 
 <Layout title={title} description={description}>
   <main>
     <h1>{title}</h1>
     <p>{description}</p>
+    <p>
+      Start with ordinary Astro files and add what your project needs.
+      The default page uses native HTML, without application JavaScript,
+      author CSS or a website font dependency.
+    </p>
+
+    <section aria-labelledby="included">
+      <h2 id="included">What's included</h2>
+      <ul>
+        <li>Strictest TypeScript and a shared layout with typed metadata props.</li>
+        <li>Canonical URLs, an official sitemap, generated robots.txt and a 404 page.</li>
+        <li>Optional automatic title cards, manual social images and page-level noindex.</li>
+        <li>Replaceable icons, build checks and <a href="https://deadhead.cevdet.ch">deadhead</a> HTML auditing.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="start">
+      <h2 id="start">Make it yours</h2>
+      <ol>
+        <li>Set your production <code>site</code> in <code>astro.config.mjs</code>, or pass it with <code>--site</code> when building.</li>
+        <li>Edit <code>src/pages/index.astro</code> and add routes in <code>src/pages/</code>.</li>
+        <li>Use <code>src/layouts/Layout.astro</code> with a title and description for each page.</li>
+        <li>Generate your icons with <a href="https://favcon.cevdet.ch">favcon</a> and replace the matching files in <code>public/</code>.</li>
+        <li>Run <code>pnpm verify</code> with your production site configured before deploying.</li>
+      </ol>
+      <p>
+        Read the repository's <code>README.md</code> for configuration,
+        social-image controls, verification commands and optional installation metadata.
+        The <a href="https://docs.astro.build">Astro documentation</a> covers
+        routing, components, styles and deployment.
+      </p>
+    </section>
   </main>
 </Layout>

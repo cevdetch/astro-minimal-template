@@ -9,7 +9,8 @@ const indexing = createIndexing();
 
 // https://astro.build/config
 export default defineConfig({
-  // Set site to your production origin before building.
+  // Set your production origin here, or pass --site when building.
+  // site: 'https://example.com',
   // Add base only when deploying under a subpath.
   integrations: [
     siteValidation(),
