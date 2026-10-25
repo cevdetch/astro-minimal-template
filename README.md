@@ -2,7 +2,8 @@
 
 A minimal Astro starter with strictest TypeScript, shared page metadata and
 replaceable neutral assets. Start with `src/pages/index.astro` and add pages as
-your project grows. The default page uses browser-native styling and fonts.
+your project grows. The default page uses browser-native styling and fonts,
+with no application JavaScript, author CSS or downloaded webfont.
 
 ## Requirements
 
@@ -35,13 +36,17 @@ Open the local URL from the server output. Use `pnpm dev status`,
 | `pnpm preview` | Preview the production build |
 | `pnpm astro --help` | Read Astro CLI help |
 
+Use `pnpm preview status`, `pnpm preview logs` and `pnpm preview stop` to manage
+the preview server.
+
 With `site` configured, run `pnpm verify` before committing changes. Astro's
 build command alone does not run the type checker or tests.
 
 ## Production URL
 
 Set `site` in `astro.config.mjs` to your production origin before building. For
-this project, the origin is `https://astro-minimal-template.cevdet.ch`:
+this project, the origin is `https://astro-minimal-template.cevdet.ch`. Add it to
+the existing configuration, preserving its imports and integration order:
 
 ```js
 export default defineConfig({
@@ -106,12 +111,35 @@ import Layout from '../layouts/Layout.astro';
 | `image` | `{ src?: string; alt?: string } \| false` | Omit `src` for an automatic title card; supply `src` for a manual image, or use `false` for no social block |
 
 Language and direction are separate. For a right-to-left page, use a suitable
-language tag and set `dir="rtl"`, for example `lang="ar" dir="rtl"`.
+language tag and set `dir="rtl"`. Use a manual image or disable the social block
+because the bundled card renderer does not support RTL text:
+
+```astro
+<Layout title="حول المشروع" description="معلومات عن المشروع." lang="ar" dir="rtl" image={false}>
+  <main><h1>حول المشروع</h1><p>معلومات عن المشروع.</p></main>
+</Layout>
+```
 
 Override `canonical` when another URL represents the same content, such as a
 print view pointing to its main article. `noindex` preserves the canonical link
 and any manual image. Use `canonical={false}` or `image={false}` to omit them.
-These props do not change the HTTP status of a page.
+For a print view that should stay out of search results:
+
+```astro
+<Layout
+  title="Print: Project guide"
+  description="A printable project guide."
+  canonical="guide/"
+  noindex={true}
+  image={false}
+>
+  <main><h1>Project guide</h1><p>Your printable content.</p></main>
+</Layout>
+```
+
+`canonical="guide/"` resolves under the configured project root. Use
+`noindex={false}` for the ordinary default. These props do not change a page's
+HTTP status.
 
 ### Manual social images
 
@@ -143,8 +171,9 @@ Manual image URLs receive syntax validation without a download or dimension chec
 
 When neither a manual nor an automatic image applies, the page keeps its HTML
 title and description and emits no Open Graph or Twitter tags. Preview cards
-then depend on the sharing service's fallback behavior. In development without `site`, the layout omits canonical and
-social metadata, including absolute manual images.
+then depend on the sharing service's fallback behavior. In development without
+`site`, the layout omits canonical and social metadata, including absolute manual
+images.
 
 ## Automatic title cards
 
@@ -152,7 +181,7 @@ Static pages using Layout get a local 1200×630 PNG during the production build
 when you omit `image.src`. The card shows the title in Noto Sans on a neutral
 background. Long titles wrap to five lines and end with an ellipsis; HTML and
 Open Graph metadata retain the full title and description. `image.alt` stays
-optional and adds no attribute unless you supply nonblank text.
+optional; the layout emits `og:image:alt` only for nonblank supplied text.
 
 Use `image={false}` to disable a page's social block. A manual `image.src` bypasses
 generation. Page-level `noindex={true}`, the supplied 404, redirects and pages
@@ -220,8 +249,9 @@ crawlers not to index a page; it does not restrict access to its content.
 The starter uses [Astro's official sitemap integration](https://docs.astro.build/en/guides/integrations-guide/sitemap/).
 Keep the integration order in `astro.config.mjs`: collect page policy, generate
 automatic cards, generate the official sitemap, then verify crawler output.
-The collected `sitemapPages` array supplies actual emitted URLs through `customPages`, including `.html` URLs
-in file output mode. You do not maintain a separate route list.
+The collected `sitemapPages` array supplies actual emitted URLs through
+`customPages`, including `.html` URLs in file output mode. You do not maintain a
+separate route list.
 
 The sitemap includes ordinary indexable pages. It excludes page-level noindex,
 404/500 pages, redirects, and pages whose canonical points to a different URL.
@@ -261,8 +291,12 @@ URLs. The page metadata does not configure the host's response status.
 Add routes in `src/pages/`, place static assets in `public/`, and configure Astro
 in `astro.config.mjs`. TypeScript uses `astro/tsconfigs/strictest`.
 
-See the [Astro documentation](https://docs.astro.build) for routing, components,
-and configuration.
+Add project styles and scripts with Astro's ordinary
+[CSS](https://docs.astro.build/en/guides/styling/) and
+[client-side script](https://docs.astro.build/en/guides/client-side-scripts/)
+support; the output checks allow both. See the
+[Astro documentation](https://docs.astro.build) for routing, components and
+configuration.
 
 ## Starter assets
 
@@ -276,7 +310,8 @@ static `icon.svg`, `apple-touch-icon.png` at 180×180, and opaque, padded
 starter page; use them when adding your project's logo or installation metadata.
 
 The checked-in assets need no image-generation package or external checkout to
-build.
+build. After replacing an icon, check browser and host caches. These unversioned
+asset URLs need revalidation; avoid immutable caching for them.
 
 ## Verification and updates
 
