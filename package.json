@@ -13,6 +13,9 @@
     "test": "node --test tests/unit/*.test.ts",
     "test:build": "node --test tests/build/*.test.ts",
     "build": "astro build",
+    "verify:output": "node scripts/verify-output.ts",
+    "lint:html": "node scripts/lint-html.ts",
+    "verify": "pnpm check && pnpm test && pnpm test:build && pnpm build && pnpm verify:output && pnpm lint:html",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -23,6 +26,7 @@
     "@astrojs/check": "0.9.12",
     "@astrojs/sitemap": "3.7.4",
     "@types/node": "24.8.0",
+    "deadhead": "0.3.1",
     "parse5": "8.0.1",
     "satori": "0.33.5",
     "sharp": "0.35.5",

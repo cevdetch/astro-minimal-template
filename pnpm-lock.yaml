@@ -122,6 +122,9 @@ importers:
       '@types/node':
         specifier: 24.8.0
         version: 24.8.0
+      deadhead:
+        specifier: 0.3.1
+        version: 0.3.1(vite@8.3.5(@types/node@24.8.0)(yaml@2.9.1))
       parse5:
         specifier: 8.0.1
         version: 8.0.1
@@ -911,6 +914,16 @@ packages:
   csso@5.0.5:
     resolution: {integrity: sha512-0LrrStPOdJj+SPCCrGhzryycLjwcgUSHBtxNA8aIDxf0GLsRh1cKYhB00Gd1lDOS4yGH69+SNn13+TWbVHETFQ==}
     engines: {node: ^10 || ^12.20.0 || ^14.13.0 || >=15.0.0, npm: '>=7.0.0'}
+
+  deadhead@0.3.1:
+    resolution: {integrity: sha512-nKRCIWuUaGY3I29sxEjHArpT4CYPG+22cTA7sIP/Xo0g/6aNoA1ludcCqNoVB7+yYfNWprwe8ENRSRCUCDcmBg==}
+    engines: {node: '>=24.8.0'}
+    hasBin: true
+    peerDependencies:
+      vite: ^8.0.0
+    peerDependenciesMeta:
+      vite:
+        optional: true
 
   defu@6.1.7:
     resolution: {integrity: sha512-7z22QmUWiQ/2d0KkdYmANbRUVABpZ9SNYyH5vx6PZ+nE5bcC0l7uFvEfHlyld/HcGBFTL536ClDt3DEcSlEJAQ==}
@@ -2558,6 +2571,12 @@ snapshots:
   csso@5.0.5:
     dependencies:
       css-tree: 2.2.1
+
+  deadhead@0.3.1(vite@8.3.5(@types/node@24.8.0)(yaml@2.9.1)):
+    dependencies:
+      parse5: 8.0.1
+    optionalDependencies:
+      vite: 8.3.5(@types/node@24.8.0)(yaml@2.9.1)
 
   defu@6.1.7: {}
 

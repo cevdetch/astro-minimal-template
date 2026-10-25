@@ -161,20 +161,21 @@ test('physical removal builds manual metadata and crawlers with normal remaining
   for (const path of ['integrations/social-images.ts', 'lib/social-card.ts', 'lib/social-renderer.ts', 'assets/social-fonts/']) {
     await rm(new URL(`src/${path}`, fixture.root), { recursive: true });
   }
-  await writeFile(new URL('src/pages/index.astro', fixture.root), page('{image:{src:"/manual.png"}}'));
+  await writeFile(new URL('src/pages/index.astro', fixture.root), page('{image:{src:"/_social/manual.png"}}'));
   for (const path of ['package.json', 'pnpm-lock.yaml', 'tsconfig.json']) {
     await cp(new URL(`../../${path}`, import.meta.url), new URL(path, fixture.root));
   }
-  await promisify(execFile)('pnpm', ['remove', '-D', 'satori', 'sharp', '--offline'], { cwd: fixture.root, maxBuffer: 1024 * 1024 });
+  await cp(new URL('../../scripts/', import.meta.url), new URL('scripts/', fixture.root), { recursive: true });
+  await promisify(execFile)('pnpm', ['remove', '-D', 'satori', '--offline'], { cwd: fixture.root, maxBuffer: 1024 * 1024 });
   const manifest = JSON.parse(await readFile(new URL('package.json', fixture.root), 'utf8')) as {devDependencies: Record<string,string>};
   assert.equal(manifest.devDependencies['satori'], undefined);
-  assert.equal(manifest.devDependencies['sharp'], undefined);
   assert.equal(manifest.devDependencies['parse5'], '8.0.1');
   await promisify(execFile)('pnpm', ['check'], { cwd: fixture.root, maxBuffer: 1024 * 1024 });
   const result = await fixture.build(); assert.equal(result.code, 0, result.log);
+  await promisify(execFile)('pnpm', ['verify:output'], { cwd: fixture.root, maxBuffer: 1024 * 1024 });
   const html = await readFile(new URL('index.html', result.outDir), 'utf8');
-  assert.equal(parseDocument(html).imageUrl, 'https://example.test/manual.png');
-  assert.doesNotMatch(html, /data-starter-|_social/);
+  assert.equal(parseDocument(html).imageUrl, 'https://example.test/_social/manual.png');
+  assert.doesNotMatch(html, /data-starter-/);
   await readFile(new URL('sitemap-0.xml', result.outDir));
   assert.match(await readFile(new URL('robots.txt', result.outDir), 'utf8'), /Sitemap:/);
   await assert.rejects(readdir(new URL('_social/', result.outDir)), {code:'ENOENT'});

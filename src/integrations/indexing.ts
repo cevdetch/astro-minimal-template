@@ -77,7 +77,8 @@ export function createIndexing() {
             if (identities.has(identity.href)) throw new Error(`Duplicate page identity: ${identity.href}.`);
             identities.add(identity.href);
             const owned = parsed.pagePolicy !== undefined;
-            records.push({ file: file.href, url: identity.href, owned });
+            records.push({ file: file.href, url: identity.href, owned,
+              ...(parsed.generatedImageUrl ? { generatedImageUrl: parsed.generatedImageUrl } : {}) });
             const noindex = parsed.pagePolicy?.noindex ?? parsed.robotsNoindex;
             const canonical = parsed.canonicalUrl === undefined ? identity : new URL(parsed.canonicalUrl, identity);
             if (!['http:', 'https:'].includes(canonical.protocol) || canonical.hash) throw new Error(`Invalid canonical URL in ${file.href}.`);
@@ -88,7 +89,7 @@ export function createIndexing() {
         }
         const sitemapUrls = [...allowed].sort();
         sitemapPages.push(...sitemapUrls);
-        receipt = { version: 1, site: origin.href, base: config.base, outDir: dir.href,
+        receipt = { version: 2, site: origin.href, base: config.base, outDir: dir.href,
           format: config.build.format, pages: records.sort((a, b) => a.url.localeCompare(b.url)), sitemapUrls };
       },
     },

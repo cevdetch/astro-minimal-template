@@ -29,11 +29,14 @@ Open the local URL from the server output. Use `pnpm dev status`,
 | `pnpm test` | Test metadata, URL resolution and title-card generation |
 | `pnpm test:build` | Check configuration and rendered metadata with real builds |
 | `pnpm build` | Build the static site into `dist/` |
+| `pnpm verify:output` | Validate the last recorded successful build output |
+| `pnpm lint:html` | Audit the recorded output directory with deadhead |
+| `pnpm verify` | Run type checks, both test suites, a fresh build, output checks and HTML audit |
 | `pnpm preview` | Preview the production build |
 | `pnpm astro --help` | Read Astro CLI help |
 
-Run `pnpm check`, `pnpm test`, `pnpm test:build`, and `pnpm build` before committing
-changes. Astro's build command does not run the type checker.
+With `site` configured, run `pnpm verify` before committing changes. Astro's
+build command alone does not run the type checker or tests.
 
 ## Production URL
 
@@ -191,11 +194,11 @@ disablement or a switch to a manual image.
    `src/lib/social-renderer.ts` and `src/assets/social-fonts/`.
 4. Remove `tests/unit/social-images.test.ts` and `tests/build/social-images.test.ts`,
    which test the feature you removed.
-5. Run `pnpm remove -D satori sharp`. Keep `parse5` for indexing. Astro may still
-   install Sharp as its own dependency.
-6. Run `pnpm check`, `pnpm test`, `pnpm test:build` and `pnpm build` with your `site`
-   configured. Manual images, sitemap and robots remain available. Removing the
-   integration releases its reserved namespace.
+5. Run `pnpm remove -D satori`. Keep `parse5` for indexing and Sharp for the
+   output checks, which also use it to decode generated PNGs.
+6. Run `pnpm verify` with your `site` configured. Manual images, sitemap and
+   robots remain available. Removing the integration releases its reserved
+   namespace.
 
 ## Preview noindex
 
@@ -274,6 +277,50 @@ starter page; use them when adding your project's logo or installation metadata.
 
 The checked-in assets need no image-generation package or external checkout to
 build.
+
+## Verification and updates
+
+`pnpm verify` runs `check`, `test`, `test:build`, `build`, `verify:output` and
+`lint:html` in order, stopping on a failure. Configure `site` before running it.
+For a one-off build origin or output override, run the build and output checks
+as separate commands, alongside the type and test checks:
+
+```sh
+pnpm build --site https://astro-minimal-template.cevdet.ch --base /project/ --outDir ./site-output/
+pnpm verify:output
+pnpm lint:html
+```
+
+The build records its actual origin, base, output directory and emitted pages in
+`.astro/starter-build.json`. Both output commands read that receipt, so CLI
+changes to `site`, `base` or `outDir` carry through without editing a script.
+A missing or invalid receipt asks you to build first. These standalone commands
+inspect the recorded output; they do not rebuild after source changes. Use
+`pnpm verify` to validate a fresh build of your current source.
+
+The output verifier checks Layout pages for complete required metadata,
+canonical/social consistency and leaked internal markers. It decodes generated
+PNGs and checks their route identity and dimensions, without downloading or
+probing manual images. It also checks sitemap chunks and robots references
+against the recorded selection. Pages that bypass Layout keep their own
+metadata policy. Consumer CSS, JavaScript and fonts are allowed.
+
+[deadhead](https://deadhead.cevdet.ch/install) audits HTML across the recorded
+output directory, including copied public HTML. The wrapper uses the published
+CLI's default rules and failure threshold, preserves its nonzero exit status,
+and leaves files unchanged. It supplies no fixes, rule overrides or baseline.
+
+[CI](.github/workflows/ci.yml) runs these checks on Node 24.8.0 and the latest
+LTS using frozen pnpm installs and pinned Actions. Its build uses an explicit
+`https://example.test` origin; the template's `site` remains yours to configure.
+The workflow has read-only repository permissions and performs verification.
+
+Update direct dependencies in reviewable changes and keep `packageManager` and
+`pnpm-lock.yaml` consistent. Run `pnpm verify` after upgrades. Review pinned
+Action updates and keep the Node engine requirement and CI matrix aligned.
+For renderer or font changes, inspect short, long and multilingual cards;
+recheck glyph coverage, PNG dimensions, output size and build cost. Preserve the
+font's applicable license and update its provenance when replacing it.
 
 ## Optional installation metadata
 
