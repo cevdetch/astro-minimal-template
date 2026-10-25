@@ -9,7 +9,7 @@ const layout = source('layouts/Layout.astro');
 const page = (props = '{}') => `---
 import Layout from ${JSON.stringify(layout)};
 ---
-<Layout title="Fixture" description="Fixture description." {...${props}}><main><h1>Fixture</h1></main></Layout>`;
+<Layout title="Fixture" description="Fixture description." image={false} {...${props}}><main><h1>Fixture</h1></main></Layout>`;
 const robots = `export { GET } from ${JSON.stringify(source('pages/robots.txt.ts'))};`;
 const notFound = `---\nimport Page from ${JSON.stringify(source('pages/404.astro'))};\n---\n<Page />`;
 const config = (fields = '', extra = '') => `

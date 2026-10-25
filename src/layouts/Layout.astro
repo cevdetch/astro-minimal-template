@@ -1,4 +1,5 @@
 ---
+import { siteConfig } from '../config.ts';
 import { parseSiteNoindex, resolveSeo, type LayoutProps } from '../lib/seo.ts';
 
 type Props = LayoutProps;
@@ -10,13 +11,16 @@ const seo = await resolveSeo(Astro.props, {
   url: new URL(Astro.request.url),
   mode: import.meta.env.DEV ? 'dev' : Astro.isPrerendered ? 'build' : 'server',
   siteNoindex: parseSiteNoindex(import.meta.env['SITE_NOINDEX']),
-  socialImages: false,
+  socialImages: siteConfig.socialImages,
 });
 ---
 
 <!doctype html>
 <html lang={seo.lang} dir={seo.dir}>
-  <head data-starter-page-v1={seo.pagePolicy ? JSON.stringify(seo.pagePolicy) : undefined}>
+  <head
+    data-starter-page-v1={seo.pagePolicy ? JSON.stringify(seo.pagePolicy) : undefined}
+    data-starter-social-v1={seo.generatedImageUrl}
+  >
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>{seo.title}</title>

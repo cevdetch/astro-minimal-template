@@ -26,7 +26,7 @@ Open the local URL from the server output. Use `pnpm dev status`,
 | Command | Purpose |
 | --- | --- |
 | `pnpm check` | Check Astro and TypeScript files for errors |
-| `pnpm test` | Test URL resolution and metadata policy |
+| `pnpm test` | Test metadata, URL resolution and title-card generation |
 | `pnpm test:build` | Check configuration and rendered metadata with real builds |
 | `pnpm build` | Build the static site into `dist/` |
 | `pnpm preview` | Preview the production build |
@@ -46,6 +46,7 @@ export default defineConfig({
   integrations: [
     siteValidation(),
     indexing.collect,
+    socialImages(),
     sitemap({ filter: indexing.filter, customPages: indexing.sitemapPages }),
     indexing.finalize,
   ],
@@ -99,7 +100,7 @@ import Layout from '../layouts/Layout.astro';
 | `dir` | `'ltr' \| 'rtl' \| 'auto'` | Omitted by default; set direction when needed |
 | `canonical` | `string \| false` | Defaults to the production page URL; override it or pass `false` to omit the link |
 | `noindex` | `boolean` | Defaults to `false`; `true` adds `<meta name="robots" content="noindex">` |
-| `image` | `{ src?: string; alt?: string } \| false` | Supply `src` for social metadata; omit it or use `false` for no social block |
+| `image` | `{ src?: string; alt?: string } \| false` | Omit `src` for an automatic title card; supply `src` for a manual image, or use `false` for no social block |
 
 Language and direction are separate. For a right-to-left page, use a suitable
 language tag and set `dir="rtl"`, for example `lang="ar" dir="rtl"`.
@@ -133,13 +134,68 @@ with `canonical={false}`, it uses the production page URL.
 
 `image.alt` is optional. Supply it when you want an image description; missing
 or blank alt adds no `og:image:alt`. The layout does not invent alt from the title
-or description. An alt-only object adds no social block without an image source.
+or description. An alt-only object supplies alt for an eligible automatic card;
+it does not make an otherwise excluded page eligible.
 Manual image URLs receive syntax validation without a download or dimension check.
 
-Without an image source, the page keeps its HTML title and description and emits
-no Open Graph or Twitter tags. Preview cards then depend on the sharing service's
-fallback behavior. In development without `site`, the layout omits canonical and
+When neither a manual nor an automatic image applies, the page keeps its HTML
+title and description and emits no Open Graph or Twitter tags. Preview cards
+then depend on the sharing service's fallback behavior. In development without `site`, the layout omits canonical and
 social metadata, including absolute manual images.
+
+## Automatic title cards
+
+Static pages using Layout get a local 1200×630 PNG during the production build
+when you omit `image.src`. The card shows the title in Noto Sans on a neutral
+background. Long titles wrap to five lines and end with an ellipsis; HTML and
+Open Graph metadata retain the full title and description. `image.alt` stays
+optional and adds no attribute unless you supply nonblank text.
+
+Use `image={false}` to disable a page's social block. A manual `image.src` bypasses
+generation. Page-level `noindex={true}`, the supplied 404, redirects and pages
+that bypass Layout do not generate cards. Development and on-demand pages do not
+generate them either; manual social metadata still works when `site` is set.
+Preview-wide `SITE_NOINDEX=true` keeps otherwise eligible automatic cards.
+
+To disable automatic cards project-wide, set `socialImages: false` in
+`src/config.ts`. Manual images, page metadata and crawlers keep working. The
+build loads the renderer and font only when an eligible page needs a card.
+Generation adds build work, build dependencies and a bundled font; visitors
+receive PNGs without application JavaScript, CSS or a webfont. A generation
+failure stops the build. Deploy output from successful builds.
+
+Edit `src/lib/social-card.ts` to change the artwork. The bundled static Noto Sans
+Regular 400 comes from the official NotoSans-v2.015 release. Its original
+[SIL Open Font License](src/assets/social-fonts/OFL.txt) and provenance sit beside
+the font in `src/assets/social-fonts/`. Keep the relevant license when replacing
+it. Latin, Greek and Cyrillic samples are covered; the font does not cover all
+Unicode. Unsupported glyphs fail with the page URL; use a tested font, a manual
+image or `image={false}`. Automatic RTL card shaping is unverified and fails
+generation. Use a manual image or `image={false}` for RTL pages; ordinary RTL
+HTML remains available.
+
+The registered integration reserves `base/_social/`, including when generation
+is disabled. Keep consumer assets, routes and same-origin manual image URLs out
+of that namespace. A collision fails the build and preserves consumer files.
+Generated names hash the request pathname, so canonical aliases keep distinct
+images. A title change keeps the image URL: configure host revalidation and
+refresh sharing-service caches when needed. Avoid immutable caching for these
+route-stable files. Full rebuilds remove old cards after route deletion,
+disablement or a switch to a manual image.
+
+### Remove automatic generation
+
+1. Set `socialImages: false` in `src/config.ts` and keep that lightweight setting.
+2. Remove the `socialImages` import and integration call from `astro.config.mjs`.
+3. Delete `src/integrations/social-images.ts`, `src/lib/social-card.ts`,
+   `src/lib/social-renderer.ts` and `src/assets/social-fonts/`.
+4. Remove `tests/unit/social-images.test.ts` and `tests/build/social-images.test.ts`,
+   which test the feature you removed.
+5. Run `pnpm remove -D satori sharp`. Keep `parse5` for indexing. Astro may still
+   install Sharp as its own dependency.
+6. Run `pnpm check`, `pnpm test`, `pnpm test:build` and `pnpm build` with your `site`
+   configured. Manual images, sitemap and robots remain available. Removing the
+   integration releases its reserved namespace.
 
 ## Preview noindex
 
@@ -153,15 +209,15 @@ An unset value defaults to false. When set, use the exact string `true` or `fals
 empty values, whitespace, numeric values and other spellings fail validation.
 Page props accept booleans: use `noindex={true}` or `noindex={false}`. A page cannot
 override preview-wide noindex. Production canonical and manual-image URLs stay
-the same. A robots meta tag asks crawlers not to index a page; it does not restrict
-access to its content.
+the same. Eligible automatic cards remain enabled. A robots meta tag asks
+crawlers not to index a page; it does not restrict access to its content.
 
 ## Sitemap and robots
 
 The starter uses [Astro's official sitemap integration](https://docs.astro.build/en/guides/integrations-guide/sitemap/).
 Keep the integration order in `astro.config.mjs`: collect page policy, generate
-the official sitemap, then verify crawler output. The collected `sitemapPages`
-array supplies actual emitted URLs through `customPages`, including `.html` URLs
+automatic cards, generate the official sitemap, then verify crawler output.
+The collected `sitemapPages` array supplies actual emitted URLs through `customPages`, including `.html` URLs
 in file output mode. You do not maintain a separate route list.
 
 The sitemap includes ordinary indexable pages. It excludes page-level noindex,

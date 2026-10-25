@@ -10,7 +10,7 @@ const collector = `import { createIndexing } from ${JSON.stringify(indexing)};\n
 const text = { title: 'A <page> & "quote"', description: 'Details & <ideas> with "quotes".' };
 const page = (props: Record<string, unknown>) => `---
 import Layout from ${JSON.stringify(layout)};
-const props = ${JSON.stringify({ ...text, ...props })};
+const props = ${JSON.stringify({ ...text, image: false, ...props })};
 ---
 <Layout {...props}><main><h1>{props.title}</h1><p>Page content.</p></main></Layout>`;
 
