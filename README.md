@@ -1,7 +1,8 @@
 # Astro Minimal Template
 
-A minimal Astro starter with strictest TypeScript and replaceable neutral assets.
-Start with `src/pages/index.astro` and add pages as your project grows.
+A minimal Astro starter with strictest TypeScript, shared page metadata and
+replaceable neutral assets. Start with `src/pages/index.astro` and add pages as
+your project grows. The default page uses browser-native styling and fonts.
 
 ## Requirements
 
@@ -25,8 +26,8 @@ Open the local URL from the server output. Use `pnpm dev status`,
 | Command | Purpose |
 | --- | --- |
 | `pnpm check` | Check Astro and TypeScript files for errors |
-| `pnpm test` | Test URL resolution and configuration rules |
-| `pnpm test:build` | Test production validation with real Astro builds |
+| `pnpm test` | Test URL resolution and metadata policy |
+| `pnpm test:build` | Check configuration and rendered metadata with real builds |
 | `pnpm build` | Build the static site into `dist/` |
 | `pnpm preview` | Preview the production build |
 | `pnpm astro --help` | Read Astro CLI help |
@@ -66,9 +67,89 @@ URL keeps its own origin. Explicit queries remain intact. Canonical URLs reject
 fragments; page URLs discard request queries and fragments. The helpers validate
 URL syntax without fetching the target.
 
-`parseSiteNoindex` accepts an unset value as false, or the exact strings `true`
-and `false`. It rejects empty values, whitespace, numeric values and other
-spellings. This parser does not add robots metadata to the current page.
+## Page metadata
+
+Use `src/layouts/Layout.astro` for each full page. Supply a nonblank `title` and
+`description`; the layout preserves their complete text and escapes it as HTML.
+For example, in `src/pages/about.astro`:
+
+```astro
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About" description="Learn about this project.">
+  <main>
+    <h1>About</h1>
+    <p>Write your page content here.</p>
+  </main>
+</Layout>
+```
+
+| Prop | Type | Behavior |
+| --- | --- | --- |
+| `title` | `string`, required | Full HTML title and, when an image exists, Open Graph title |
+| `description` | `string`, required | HTML description and, when an image exists, Open Graph description |
+| `lang` | `string` | Defaults to `en`; supply a nonblank language tag |
+| `dir` | `'ltr' \| 'rtl' \| 'auto'` | Omitted by default; set direction when needed |
+| `canonical` | `string \| false` | Defaults to the production page URL; override it or pass `false` to omit the link |
+| `noindex` | `boolean` | Defaults to `false`; `true` adds `<meta name="robots" content="noindex">` |
+| `image` | `{ src?: string; alt?: string } \| false` | Supply `src` for social metadata; omit it or use `false` for no social block |
+
+Language and direction are separate. For a right-to-left page, use a suitable
+language tag and set `dir="rtl"`, for example `lang="ar" dir="rtl"`.
+
+Override `canonical` when another URL represents the same content, such as a
+print view pointing to its main article. `noindex` preserves the canonical link
+and any manual image. Use `canonical={false}` or `image={false}` to omit them.
+These props do not change the HTTP status of a page.
+
+### Manual social images
+
+Add your image to `public/`, or use an absolute image URL. Pass its path in
+`image.src`:
+
+```astro
+<Layout
+  title="About"
+  description="Learn about this project."
+  image={{ src: 'images/about.png', alt: 'The project team at work.' }}
+>
+  <main>
+    <h1>About</h1>
+    <p>Write your page content here.</p>
+  </main>
+</Layout>
+```
+
+With an image, the layout adds Open Graph type, URL, title, description and image,
+plus `twitter:card="summary_large_image"`. `og:url` follows the canonical override;
+with `canonical={false}`, it uses the production page URL.
+
+`image.alt` is optional. Supply it when you want an image description; missing
+or blank alt adds no `og:image:alt`. The layout does not invent alt from the title
+or description. An alt-only object adds no social block without an image source.
+Manual image URLs receive syntax validation without a download or dimension check.
+
+Without an image source, the page keeps its HTML title and description and emits
+no Open Graph or Twitter tags. Preview cards then depend on the sharing service's
+fallback behavior. In development without `site`, the layout omits canonical and
+social metadata, including absolute manual images.
+
+## Preview noindex
+
+Set `SITE_NOINDEX=true` when building a preview that search engines should not index:
+
+```sh
+SITE_NOINDEX=true pnpm build --site https://astro-minimal-template.cevdet.ch
+```
+
+An unset value defaults to false. When set, use the exact string `true` or `false`;
+empty values, whitespace, numeric values and other spellings fail validation.
+Page props accept booleans: use `noindex={true}` or `noindex={false}`. A page cannot
+override preview-wide noindex. Production canonical and manual-image URLs stay
+the same. A robots meta tag asks crawlers not to index a page; it does not restrict
+access to its content.
 
 ## Project files
 

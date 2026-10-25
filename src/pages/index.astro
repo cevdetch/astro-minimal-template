@@ -1,15 +1,13 @@
 ---
+import Layout from '../layouts/Layout.astro';
+
+const title = 'Astro Minimal Template';
+const description = 'A minimal starting point for your next website.';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title={title} description={description}>
+  <main>
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </main>
+</Layout>
