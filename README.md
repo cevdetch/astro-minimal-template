@@ -275,6 +275,73 @@ starter page; use them when adding your project's logo or installation metadata.
 The checked-in assets need no image-generation package or external checkout to
 build.
 
+## Optional installation metadata
+
+To add a project name and icons for browsers that support installation, create
+`src/pages/manifest.webmanifest.ts` in your project. Replace the example names:
+
+```ts
+import type { APIRoute } from 'astro';
+
+export const GET: APIRoute = () => {
+  const base = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
+  const manifest = {
+    name: 'Your project',
+    short_name: 'Project',
+    id: base,
+    start_url: base,
+    scope: base,
+    display: 'standalone',
+    icons: [
+      { src: `${base}icon-192.png`, sizes: '192x192', type: 'image/png' },
+      { src: `${base}icon-512.png`, sizes: '512x512', type: 'image/png' },
+    ],
+  };
+
+  return new Response(JSON.stringify(manifest), {
+    headers: { 'Content-Type': 'application/manifest+json' },
+  });
+};
+```
+
+Astro [builds this endpoint into a static file](https://docs.astro.build/en/guides/endpoints/#static-file-endpoints).
+`BASE_URL` keeps the start URL, scope and icon paths under `/` or your configured
+subpath, such as `/project/`. Normalizing the final slash also handles
+`trailingSlash: 'never'`. The `id` identifies the installed app; keep it stable
+after deployment, even if you later change `start_url`. Use your own branding;
+the supplied PNGs are 192×192 and 512×512 general-purpose icons.
+
+Add this link beside the favicon in `src/layouts/Layout.astro`:
+
+```astro
+<link
+  rel="manifest"
+  href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/manifest.webmanifest`}
+/>
+```
+
+For an Apple Home Screen icon, add the existing 180×180 PNG:
+
+```astro
+<link
+  rel="apple-touch-icon"
+  sizes="180x180"
+  href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/apple-touch-icon.png`}
+/>
+```
+
+If your project needs branded browser or launch-screen colors, choose its own
+`theme_color` and `background_color` manifest values and an optional
+`theme-color` meta tag in Layout. Keep those colors consistent with your UI.
+
+Build and preview with your configured `site` and `base`. Check that the manifest
+link and icons resolve, the start URL stays within scope, and your host serves
+`.webmanifest` as `application/manifest+json`. Production installation requires
+HTTPS; localhost and loopback addresses support local checks. Installation UI and
+support vary by browser and platform; see the
+[manifest installation requirements](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable).
+Offline behavior requires a separate implementation; this recipe adds metadata.
+
 ## License
 
 [MIT](LICENSE). Replace the starter assets with your own branding when needed.
