@@ -6,7 +6,8 @@ type Props = LayoutProps;
 const seo = await resolveSeo(Astro.props, {
   site: Astro.site?.href,
   base: import.meta.env.BASE_URL,
-  url: Astro.url,
+  // Preserve request encoding; Astro.url normalizes repeated percent encoding.
+  url: new URL(Astro.request.url),
   mode: import.meta.env.DEV ? 'dev' : Astro.isPrerendered ? 'build' : 'server',
   siteNoindex: parseSiteNoindex(import.meta.env['SITE_NOINDEX']),
   socialImages: false,
@@ -15,7 +16,7 @@ const seo = await resolveSeo(Astro.props, {
 
 <!doctype html>
 <html lang={seo.lang} dir={seo.dir}>
-  <head>
+  <head data-starter-page-v1={seo.pagePolicy ? JSON.stringify(seo.pagePolicy) : undefined}>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>{seo.title}</title>

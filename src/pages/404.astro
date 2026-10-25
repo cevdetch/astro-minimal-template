@@ -1,0 +1,13 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const home = import.meta.env.BASE_URL;
+---
+
+<Layout title="Page not found" description="The page you requested could not be found." noindex={true} canonical={false} image={false}>
+  <main>
+    <h1>Page not found</h1>
+    <p>The page may have moved, or the address may be incorrect.</p>
+    <a href={home}>Go to the home page</a>
+  </main>
+</Layout>

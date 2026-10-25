@@ -5,6 +5,8 @@ import { createBuildFixture } from '../helpers/build-fixture.ts';
 
 const layout = new URL('../../src/layouts/Layout.astro', import.meta.url).href;
 const integration = new URL('../../src/integrations/site.ts', import.meta.url).href;
+const indexing = new URL('../../src/integrations/indexing.ts', import.meta.url).href;
+const collector = `import { createIndexing } from ${JSON.stringify(indexing)};\nconst indexing = createIndexing();`;
 const text = { title: 'A <page> & "quote"', description: 'Details & <ideas> with "quotes".' };
 const page = (props: Record<string, unknown>) => `---
 import Layout from ${JSON.stringify(layout)};
@@ -44,8 +46,9 @@ for (const base of ['/', '/project/']) {
     test(`Layout renders escaped manual and no-image metadata (${base}, ${format})`, async t => {
       const fixture = await createBuildFixture({
         configSource: `import { siteValidation } from ${JSON.stringify(integration)};
+${collector}
 export default { site: 'https://example.test', base: ${JSON.stringify(base)},
-  outDir: './output/', build: { format: ${JSON.stringify(format)} }, integrations: [siteValidation()] };`,
+  outDir: './output/', build: { format: ${JSON.stringify(format)} }, integrations: [siteValidation(), indexing.collect] };`,
         pages: {
           'index.astro': page({}),
           'nested/manual.astro': page({ canonical: 'original/?edition=2&lang=en', noindex: true,
@@ -116,7 +119,8 @@ export default { site: 'https://example.test', base: ${JSON.stringify(base)},
 test('preview noindex keeps production canonical and manual social metadata', async t => {
   const fixture = await createBuildFixture({
     configSource: `import { siteValidation } from ${JSON.stringify(integration)};
-export default { site: 'https://example.test', integrations: [siteValidation()] };`,
+${collector}
+export default { site: 'https://example.test', integrations: [siteValidation(), indexing.collect] };`,
     pages: { 'index.astro': page({ noindex: false, image: { src: '/share.png' } }) },
   });
   t.after(() => fixture.cleanup());
@@ -139,7 +143,7 @@ test('metadata values cannot inject tags or attributes into the head', async t =
   const injected = { title: '</title><script>alert("x")</script>',
     description: '" /><meta name="injected" content="yes"> & more' };
   const fixture = await createBuildFixture({
-    configSource: `export default { site: 'https://example.test' };`,
+    configSource: `${collector}\nexport default { site: 'https://example.test', integrations: [indexing.collect] };`,
     pages: { 'index.astro': page({ ...injected, image: { src: '/share.png', alt: injected.description } }) },
   });
   t.after(() => fixture.cleanup());

@@ -43,7 +43,12 @@ this project, the origin is `https://astro-minimal-template.cevdet.ch`:
 ```js
 export default defineConfig({
   site: 'https://astro-minimal-template.cevdet.ch',
-  integrations: [siteValidation()],
+  integrations: [
+    siteValidation(),
+    indexing.collect,
+    sitemap({ filter: indexing.filter, customPages: indexing.sitemapPages }),
+    indexing.finalize,
+  ],
 });
 ```
 
@@ -150,6 +155,47 @@ Page props accept booleans: use `noindex={true}` or `noindex={false}`. A page ca
 override preview-wide noindex. Production canonical and manual-image URLs stay
 the same. A robots meta tag asks crawlers not to index a page; it does not restrict
 access to its content.
+
+## Sitemap and robots
+
+The starter uses [Astro's official sitemap integration](https://docs.astro.build/en/guides/integrations-guide/sitemap/).
+Keep the integration order in `astro.config.mjs`: collect page policy, generate
+the official sitemap, then verify crawler output. The collected `sitemapPages`
+array supplies actual emitted URLs through `customPages`, including `.html` URLs
+in file output mode. You do not maintain a separate route list.
+
+The sitemap includes ordinary indexable pages. It excludes page-level noindex,
+404/500 pages, redirects, and pages whose canonical points to a different URL.
+`canonical={false}` alone keeps a page eligible. Preview-wide `SITE_NOINDEX=true`
+preserves the production sitemap selection.
+
+Pages that bypass Layout use their own robots and canonical metadata for this
+selection. Copied `public/` HTML does not enter page discovery. The build preserves
+request-path encoding for metadata; Astro still normalizes paths when matching
+routes, so avoid routes that differ only by repeated percent encoding.
+
+`src/pages/robots.txt.ts` generates crawler rules from `site` and `base`. It allows
+crawling so crawlers can read noindex metadata, and advertises the absolute
+`sitemap-index.xml` URL. The index points to the integration's standard sitemap
+chunks. If no pages qualify, the integration creates no XML and the finalizer
+omits the `Sitemap:` line. Development without `site` also omits that line.
+
+For subpath hosting, crawlers need rules at the domain root: `/robots.txt`.
+Ask the host owner to publish or merge the generated rules there and preserve the
+absolute sitemap URL. A file served only at `/project/robots.txt` is insufficient.
+
+A build fails on ambiguous page output, malformed internal page markers, missing
+sitemap chunks, stale sitemap XML or inconsistent crawler references. Successful
+output contains no internal markers. The ignored `.astro/starter-build.json`
+records the actual origin, base, output directory and emitted pages for local checks;
+deploy only the contents of your configured output directory.
+
+## Not-found page
+
+`src/pages/404.astro` provides a semantic not-found page with a base-aware home
+link. It sets `noindex={true}`, `canonical={false}` and `image={false}`.
+Configure your static host to serve `404.html` with an HTTP 404 status for missing
+URLs. The page metadata does not configure the host's response status.
 
 ## Project files
 
