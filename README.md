@@ -336,7 +336,7 @@ static `icon.svg`, `apple-touch-icon.png` at 180×180, and opaque, padded
 `icon-192.png` and `icon-512.png`. These extra assets have no declarations in the
 starter page; use them when adding your project's logo or installation metadata.
 
-To replace the set, use [favcon](https://favcon.cevdet.ch), the favicon utility
+To replace the set, use [favseed](https://favseed.cevdet.ch), the favicon utility
 by cevdetch. Generate the files from your own SVG and copy them into `public/`,
 replacing the existing files with the same names:
 
@@ -349,10 +349,10 @@ icon-192.png
 icon-512.png
 ```
 
-The filenames match favcon's output. Keep the existing ICO declaration for the
+The filenames match favseed's output. Keep the existing ICO declaration for the
 default page; add Apple and manifest links only if your project needs them, using
 the optional installation recipe below. Generating the assets requires no
-favcon dependency or integration in this starter.
+favseed dependency or integration in this starter.
 
 The checked-in assets need no image-generation package or external checkout to
 build. After replacing an icon, check browser and host caches. These unversioned
