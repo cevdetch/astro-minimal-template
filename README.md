@@ -25,6 +25,55 @@ pnpm dev --background
 Open the local URL from the server output. Use `pnpm dev status`,
 `pnpm dev logs`, and `pnpm dev stop` to manage the background server.
 
+## Make it yours
+
+1. Set your production `site` in `astro.config.mjs`, or pass it with `--site`
+   when building. See [Production URL](#production-url).
+2. Replace the site name, author and repository in `src/config.ts`. See
+   [Site identity](#site-identity).
+3. Rewrite `src/pages/index.astro` and add your own routes in `src/pages/`, each
+   with a title and description. See [Page metadata](#page-metadata).
+4. Replace the icons in `public/`. See [Starter assets](#starter-assets).
+5. Delete `src/pages/docs/` and the documentation section of
+   `src/pages/index.astro` when you no longer need the guides. They describe
+   the starter, not your project; the sitemap drops them on the next build.
+6. Run `pnpm verify` with your `site` configured, then deploy.
+
+The guides in `src/pages/docs/` are published at
+[astro-minimal-template.cevdet.ch/docs/](https://astro-minimal-template.cevdet.ch/docs/).
+They cover the metadata defaults, the build checks, deploying to Cloudflare
+Pages and these steps in more detail.
+
+## SEO checklist
+
+What the starter does for search engines on every build:
+
+- Writes an absolute, self-referencing canonical URL for each page, in the
+  trailing-slash form the host serves.
+- Ends inner page titles with the site name (`Page · Site`) and starts the
+  homepage title with it (`Site: what it does`).
+- Adds Open Graph tags, a 1200×630 title card and
+  `twitter:card="summary_large_image"` to each eligible page.
+- Adds `WebSite` structured data to the homepage, with the author as publisher.
+- Generates a sitemap index that lists only indexable pages, and a robots.txt
+  that allows crawling and names the sitemap.
+- Serves a `noindex` 404 page, and can mark single pages or a whole preview
+  build `noindex`.
+- Fails the build or the output checks when a page's metadata is missing or
+  inconsistent, and audits the HTML with deadhead.
+
+What you still have to do:
+
+- Set the production `site`; the build fails without it.
+- Write a distinct title and a one- or two-sentence description for every
+  page, and give the homepage a `home` title that says what the site does.
+- Set `name`, `author` and `repository` in `src/config.ts`, or delete the
+  lines you do not want.
+- Check the generated title cards, or supply a manual `image` where a picture
+  says more.
+- After the first deployment, add the site to Google Search Console and Bing
+  Webmaster Tools and submit `sitemap-index.xml` in both.
+
 ## Commands
 
 | Command | Purpose |
