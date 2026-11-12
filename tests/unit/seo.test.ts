@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { formatTitle, resolveSeo, type LayoutProps, type SeoContext } from '../../src/lib/seo.ts';
+import { formatTitle, getWebSiteJsonLd, resolveSeo, type LayoutProps, type SeoContext } from '../../src/lib/seo.ts';
 
 const props: LayoutProps = { title: 'A page', description: 'A page description.' };
 const context: SeoContext = {
@@ -163,4 +163,43 @@ test('the site name follows inner page titles and leads the homepage title', asy
   for (const siteName of ['', ' \n']) {
     await assert.rejects(resolveSeo(props, { ...context, siteName }), /siteConfig\.name/);
   }
+});
+
+test('the homepage carries WebSite data whose publisher references the author', async () => {
+  const author = { name: 'Author', url: 'https://author.example.test' };
+  const setup = { ...context, siteName: 'Site', author, repository: 'https://git.example.test/site' };
+  const home = await resolveSeo({ ...props, home: true }, setup);
+  assert.deepEqual(JSON.parse(home.jsonLd!), {
+    '@context': 'https://schema.org', '@type': 'WebSite', name: 'Site', url: 'https://example.test/project/about/',
+    publisher: { '@type': 'Person', '@id': 'https://author.example.test/#person', name: 'Author', url: 'https://author.example.test/' },
+  });
+  assert.deepEqual(home.author, { name: 'Author', url: 'https://author.example.test/' });
+  assert.equal(home.repository, 'https://git.example.test/site');
+  const canonical = await resolveSeo({ ...props, home: true, canonical: '/' }, setup);
+  assert.equal(JSON.parse(canonical.jsonLd!).url, 'https://example.test/');
+  assert.equal((await resolveSeo(props, setup)).jsonLd, undefined);
+  assert.equal((await resolveSeo({ ...props, home: true }, { ...setup, mode: 'dev', site: undefined })).jsonLd, undefined);
+  assert.equal((await resolveSeo({ ...props, home: true }, { ...setup, siteName: undefined })).jsonLd, undefined);
+});
+
+test('an unset author or repository is omitted and invalid identity fails', async () => {
+  const anonymous = await resolveSeo({ ...props, home: true }, { ...context, siteName: 'Site' });
+  assert.equal(anonymous.author, undefined);
+  assert.equal(anonymous.repository, undefined);
+  assert.equal(JSON.parse(anonymous.jsonLd!).publisher, undefined);
+  const invalid: Partial<SeoContext>[] = [
+    { author: { name: ' ', url: 'https://author.example.test/' } },
+    { author: { name: 'Author', url: '/relative/' } },
+    { author: { name: 'Author', url: 'mailto:author@example.test' } },
+    { author: null as unknown as undefined }, { repository: '' }, { repository: 'git@example.test:site.git' },
+  ];
+  for (const overrides of invalid) {
+    await assert.rejects(resolveSeo(props, { ...context, ...overrides }), /siteConfig\.(author|repository)/);
+  }
+});
+
+test('WebSite data cannot close its script element', () => {
+  const json = getWebSiteJsonLd('</script><script>alert(1)</script>', 'https://example.test/', undefined);
+  assert.doesNotMatch(json, /</);
+  assert.equal(JSON.parse(json).name, '</script><script>alert(1)</script>');
 });

@@ -13,6 +13,8 @@ const seo = await resolveSeo(Astro.props, {
   siteNoindex: parseSiteNoindex(import.meta.env['SITE_NOINDEX']),
   socialImages: siteConfig.socialImages,
   siteName: siteConfig.name,
+  author: siteConfig.author,
+  repository: siteConfig.repository,
 });
 ---
 
@@ -42,8 +44,18 @@ const seo = await resolveSeo(Astro.props, {
         <meta name="twitter:card" content="summary_large_image" />
       </>
     )}
+    {seo.jsonLd && <script type="application/ld+json" is:inline set:html={seo.jsonLd} />}
   </head>
   <body>
     <slot />
+    {(seo.author || seo.repository) && (
+      <footer>
+        <p>
+          {seo.author && <>By <a href={seo.author.url}>{seo.author.name}</a></>}
+          {seo.author && seo.repository && ' · '}
+          {seo.repository && <a href={seo.repository}>Source code</a>}
+        </p>
+      </footer>
+    )}
   </body>
 </html>

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { cp, readFile, writeFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { siteConfig } from '../../src/config.ts';
 import { createBuildFixture } from '../helpers/build-fixture.ts';
@@ -181,4 +181,45 @@ test('the site name ends inner page titles and starts the homepage title', async
     assert.deepEqual(meta(html, 'og:title'), [expected]);
     assert.deepEqual(meta(html, 'og:site_name'), [siteConfig.name]);
   }
+});
+
+test('footer credit and homepage publisher come from config and go when removed', async t => {
+  const local = (props: Record<string, unknown>) => page(props).replace(JSON.stringify(layout), "'../layouts/Layout.astro'");
+  const fixture = await createBuildFixture({
+    configSource: "export default { site: 'https://example.test' };",
+    pages: { 'index.astro': local({ title: 'what it does', home: true }), 'about.astro': local({ title: 'About' }) },
+  });
+  t.after(() => fixture.cleanup());
+  for (const path of ['lib', 'layouts', 'config.ts']) {
+    await cp(new URL(`../../src/${path}`, import.meta.url), new URL(`src/${path}`, fixture.root), { recursive: true });
+  }
+  const footer = (html: string) => /<footer>[\s\S]*<\/footer>/.exec(html)?.[0];
+  const jsonLd = (html: string) => [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+    .map(([, json]) => JSON.parse(json!) as Record<string, unknown>);
+  const { author, repository } = siteConfig;
+  assert.ok(author && repository, 'The shipped config credits an author and a repository.');
+
+  let result = await fixture.build();
+  assert.equal(result.code, 0, result.log);
+  let home = await readFile(new URL('index.html', result.outDir), 'utf8');
+  const about = await readFile(new URL('about/index.html', result.outDir), 'utf8');
+  for (const html of [home, about]) {
+    assert.deepEqual(tags(footer(html) ?? '', 'a').map(tag => tag['href']), [author.url, repository]);
+  }
+  assert.deepEqual(jsonLd(home), [{
+    '@context': 'https://schema.org', '@type': 'WebSite', name: siteConfig.name, url: 'https://example.test/',
+    publisher: { '@type': 'Person', '@id': `${author.url}#person`, name: author.name, url: author.url },
+  }]);
+  assert.deepEqual(jsonLd(about), []);
+
+  const file = new URL('src/config.ts', fixture.root);
+  const source = await readFile(file, 'utf8');
+  const removed = source.replace(/^ {2}(?:author|repository): .*\n/gm, '');
+  assert.equal(removed.split('\n').length, source.split('\n').length - 2);
+  await writeFile(file, removed);
+  result = await fixture.build();
+  assert.equal(result.code, 0, result.log);
+  home = await readFile(new URL('index.html', result.outDir), 'utf8');
+  assert.equal(footer(home), undefined);
+  assert.deepEqual(jsonLd(home), [{ '@context': 'https://schema.org', '@type': 'WebSite', name: siteConfig.name, url: 'https://example.test/' }]);
 });

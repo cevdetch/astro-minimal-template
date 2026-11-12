@@ -1,5 +1,7 @@
 export type Direction = 'ltr' | 'rtl' | 'auto';
 
+export interface Person { name: string; url: string }
+
 export interface LayoutProps {
   title: string;
   description: string;
@@ -19,6 +21,8 @@ export interface SeoContext {
   siteNoindex: boolean;
   socialImages: boolean;
   siteName?: string | undefined;
+  author?: Person | undefined;
+  repository?: string | undefined;
 }
 
 export interface PagePolicy { pathname: string; noindex: boolean }
@@ -32,6 +36,9 @@ export interface ResolvedSeo {
   robotsNoindex: boolean;
   faviconHref: string;
   siteName?: string;
+  author?: Person;
+  repository?: string;
+  jsonLd?: string;
   social?: { url: string; imageUrl: string; imageAlt?: string };
   pagePolicy?: PagePolicy;
   generatedImageUrl?: string;
@@ -116,6 +123,41 @@ function requiredText(value: unknown, name: string): string {
   return value;
 }
 
+function absoluteUrl(value: unknown, name: string): string {
+  const message = `${name} must be an absolute HTTP(S) URL.`;
+  let url: URL;
+  try {
+    url = new URL(requiredText(value, name));
+  } catch {
+    throw new Error(message);
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error(message);
+  return url.href;
+}
+
+function validatePerson(value: unknown, name: string): Person {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`${name} must be an object with name and url.`);
+  }
+  const person = value as Record<string, unknown>;
+  return { name: requiredText(person['name'], `${name}.name`), url: absoluteUrl(person['url'], `${name}.url`) };
+}
+
+/**
+ * Serializes homepage WebSite data. The publisher references the author's own
+ * Person entity by @id, so every site by the same person links to one identity.
+ * Escaping < keeps the JSON from closing its script element.
+ */
+export function getWebSiteJsonLd(name: string, url: string, author: Person | undefined): string {
+  const data: Record<string, unknown> = { '@context': 'https://schema.org', '@type': 'WebSite', name, url };
+  if (author !== undefined) {
+    const id = new URL(author.url);
+    id.hash = 'person';
+    data['publisher'] = { '@type': 'Person', '@id': id.href, name: author.name, url: author.url };
+  }
+  return JSON.stringify(data).replaceAll('<', '\\u003c');
+}
+
 /**
  * Inner pages read `Page · Site`; the homepage reads `Site: what it does`.
  * The middle dot is narrow, so more of the page's own title survives truncation.
@@ -133,7 +175,11 @@ export async function resolveSeo(props: LayoutProps, context: SeoContext): Promi
   }
   const siteName = context.siteName === undefined
     ? undefined : requiredText(context.siteName, 'siteConfig.name');
-  const title = formatTitle(pageTitle, siteName, props.home ?? false);
+  const home = props.home ?? false;
+  const title = formatTitle(pageTitle, siteName, home);
+  const author = context.author === undefined ? undefined : validatePerson(context.author, 'siteConfig.author');
+  const repository = context.repository === undefined
+    ? undefined : absoluteUrl(context.repository, 'siteConfig.repository');
   const lang = props.lang === undefined ? 'en' : requiredText(props.lang, 'lang');
   if (props.dir !== undefined && !['ltr', 'rtl', 'auto'].includes(props.dir)) {
     throw new Error('dir must be ltr, rtl or auto.');
@@ -162,6 +208,8 @@ export async function resolveSeo(props: LayoutProps, context: SeoContext): Promi
   };
   if (props.dir !== undefined) seo.dir = props.dir;
   if (siteName !== undefined) seo.siteName = siteName;
+  if (author !== undefined) seo.author = author;
+  if (repository !== undefined) seo.repository = repository;
   if (context.mode === 'build') {
     seo.pagePolicy = { pathname: context.url.pathname, noindex };
   }
@@ -172,6 +220,9 @@ export async function resolveSeo(props: LayoutProps, context: SeoContext): Promi
   if (props.canonical !== false) {
     seo.canonicalUrl = props.canonical === undefined
       ? pageUrl : resolveProjectUrl(props.canonical, origin, context.base, 'canonical');
+  }
+  if (home && siteName !== undefined) {
+    seo.jsonLd = getWebSiteJsonLd(siteName, seo.canonicalUrl ?? pageUrl, author);
   }
   let imageUrl: string | undefined;
   if (src !== undefined) {

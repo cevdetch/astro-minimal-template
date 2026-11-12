@@ -118,6 +118,50 @@ If you set the real `site` in `astro.config.mjs`, the build command can start wi
 Leave it unset for production. Add your domain in the project's custom-domain
 settings; the `site` value controls generated URLs and does not configure DNS.
 
+## Site identity
+
+`src/config.ts` holds the values that identify your site. Replace them before
+you deploy:
+
+```ts
+export const siteConfig: SiteConfig = {
+  name: 'Your project',
+  author: { name: 'Your name', url: 'https://example.com/' },
+  repository: 'https://github.com/you/your-project',
+  socialImages: true,
+};
+```
+
+`name` goes into every page title, as described under [Titles](#titles). Every
+Layout page ends with a plain footer: "By" and a link to `author.url`, then a link to
+`repository`. The homepage also carries
+[`WebSite` structured data](https://developers.google.com/search/docs/appearance/site-names)
+with the site name, its URL and the author as publisher:
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Your project",
+  "url": "https://your-project.example.com/",
+  "publisher": {
+    "@type": "Person",
+    "@id": "https://example.com/#person",
+    "name": "Your name",
+    "url": "https://example.com/"
+  }
+}
+```
+
+The publisher's `@id` is `author.url` with `#person` appended. If your own site
+describes you as a `Person` with that `@id`, the sites you publish all point to
+one description of you. Both URLs must be absolute HTTP(S) URLs;
+invalid values fail the build.
+
+Delete the `author` line to drop the credit and the publisher, or the
+`repository` line to drop the source link. With neither, the layout renders no
+footer. The structured data itself needs only `name` and `site`.
+
 ## Page metadata
 
 Use `src/layouts/Layout.astro` for each full page. Supply a nonblank `title` and
@@ -141,7 +185,7 @@ import Layout from '../layouts/Layout.astro';
 | --- | --- | --- |
 | `title` | `string`, required | Page title; with the site name added, the HTML title and, when an image exists, Open Graph title |
 | `description` | `string`, required | HTML description and, when an image exists, Open Graph description |
-| `home` | `boolean` | Defaults to `false`; `true` puts the site name first, for the homepage |
+| `home` | `boolean` | Defaults to `false`; `true` puts the site name first and adds `WebSite` structured data, for the homepage |
 | `lang` | `string` | Defaults to `en`; supply a nonblank language tag |
 | `dir` | `'ltr' \| 'rtl' \| 'auto'` | Omitted by default; set direction when needed |
 | `canonical` | `string \| false` | Defaults to the production page URL; override it or pass `false` to omit the link |
@@ -150,16 +194,7 @@ import Layout from '../layouts/Layout.astro';
 
 ### Titles
 
-Set the site name once in `src/config.ts`:
-
-```ts
-export const siteConfig: SiteConfig = {
-  name: 'Your project',
-  socialImages: true,
-};
-```
-
-The layout adds it after each page title with a middle dot, so `title="About"`
+The layout adds the `name` from `src/config.ts` after each page title with a middle dot, so `title="About"`
 becomes `About · Your project`. On the homepage, pass `home` and describe what
 the site does in `title`; the site name then comes first:
 
