@@ -1,0 +1,129 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GuideNav from './_GuideNav.astro';
+import { guides } from './_guides.ts';
+
+const guide = guides.find(item => item.path === 'seo/')!;
+---
+
+<Layout title={guide.title} description={guide.description}>
+  <main>
+    <h1>{guide.title}</h1>
+    <p>{guide.description}</p>
+    <p>
+      Search engines and link previews read the same few tags on every page.
+      This starter writes them from one layout, <code>src/layouts/Layout.astro</code>,
+      so each page supplies a title and a description and the rest follows from
+      your configuration. Nothing here needs a client-side script or an
+      external service: everything is plain HTML and files generated at build time.
+    </p>
+
+    <section aria-labelledby="titles">
+      <h2 id="titles">Titles and descriptions</h2>
+      <p>
+        Every page passes a <code>title</code> and a <code>description</code>; the
+        build fails if either is missing or blank. The layout adds the site name
+        from <code>src/config.ts</code> after the page title with a middle dot, so
+        a page titled <q>About</q> gets <code>About · Your project</code>. The
+        homepage passes <code>home</code> and a short line on what the site does,
+        and the site name comes first instead:
+        <code>Your project: a short line on what it does</code>.
+      </p>
+      <p>
+        Search results cut long titles short, so put the words that tell a page
+        apart from its neighbours at the start. Write a description of one or two
+        sentences that says what the page gives the reader. Search engines often
+        build their snippet from the page text instead, so the opening paragraph
+        should say the same thing.
+      </p>
+    </section>
+
+    <section aria-labelledby="canonical">
+      <h2 id="canonical">Canonical URLs and trailing slashes</h2>
+      <p>
+        Each page links to its own absolute URL with
+        <code>{'<link rel="canonical">'}</code>, built from the production
+        <code>site</code> and the page path. The configuration sets
+        <code>trailingSlash: 'always'</code>, so that URL ends in a slash, which is
+        the form static hosts serve for Astro's directory output. The sitemap and
+        the Open Graph URL use the same form.
+      </p>
+      <p>
+        Pass <code>canonical</code> to point a duplicate, such as a print view, at
+        the main page; relative values resolve against your project root and
+        fragments are rejected. Pass <code>canonical={'{false}'}</code> to leave
+        the link out. During development without a <code>site</code>, the layout
+        omits canonical and social URLs rather than guessing an origin.
+      </p>
+    </section>
+
+    <section aria-labelledby="indexing">
+      <h2 id="indexing">Sitemap, robots.txt and noindex</h2>
+      <p>
+        The official <code>@astrojs/sitemap</code> integration writes
+        <code>sitemap-index.xml</code>. The starter fills it from the pages the
+        build actually emitted, and only with pages worth indexing: it leaves out
+        pages marked <code>noindex</code>, the 404 page, redirects and pages whose
+        canonical URL points elsewhere. You never maintain a route list.
+      </p>
+      <p>
+        <code>robots.txt</code> is generated too. It allows crawling and names the
+        absolute sitemap URL, or drops that line when no page qualifies. Crawling
+        stays allowed on purpose: a crawler has to fetch a page to read its
+        <code>noindex</code>.
+      </p>
+      <p>
+        Pass <code>noindex</code> to keep a single page out of search results.
+        For a whole preview deployment, build with <code>SITE_NOINDEX=true</code>:
+        every page gets the robots meta tag while canonical URLs keep pointing at
+        production. The supplied 404 page is <code>noindex</code>, has no canonical
+        link and no social image.
+      </p>
+    </section>
+
+    <section aria-labelledby="social">
+      <h2 id="social">Social images and link previews</h2>
+      <p>
+        When a page has an image, the layout writes the Open Graph type, URL,
+        title, description, site name and image, then
+        <code>twitter:card</code> set to <code>summary_large_image</code>. By
+        default the build draws a 1200×630 PNG title card for each eligible page,
+        so shared links show the page title instead of a blank box. Pass
+        <code>image</code> with a <code>src</code> to use your own picture, add
+        <code>alt</code> when you want to describe it, or pass
+        <code>image={'{false}'}</code> to leave the social tags out. Set
+        <code>socialImages: false</code> in <code>src/config.ts</code> to stop
+        generating cards across the site.
+      </p>
+    </section>
+
+    <section aria-labelledby="structured-data">
+      <h2 id="structured-data">Structured data</h2>
+      <p>
+        The homepage carries <code>WebSite</code> JSON-LD with the site name and
+        URL. When <code>src/config.ts</code> names an author, it is the publisher:
+        a <code>Person</code> whose <code>@id</code> is the author URL followed by
+        <code>#person</code>. If your own site describes you under that
+        <code>@id</code>, every project you publish points to one description of
+        you. Inner pages carry no structured data by default; add
+        <code>Article</code> or <code>BreadcrumbList</code> where your content
+        calls for it. FAQ and HowTo markup are not worth adding, because Google no
+        longer shows those results for most sites.
+      </p>
+    </section>
+
+    <section aria-labelledby="your-part">
+      <h2 id="your-part">What is left for you</h2>
+      <p>
+        Set your production <code>site</code>, your site name and author, and a
+        distinct title and description on every page. After the first deployment,
+        add the site to Google Search Console and Bing Webmaster Tools, submit the
+        sitemap index, and link to the new site from somewhere search engines
+        already crawl. Then give each page enough of its own text to be worth
+        indexing; no tag makes up for a thin page.
+      </p>
+    </section>
+
+    <GuideNav current={guide.path} />
+  </main>
+</Layout>

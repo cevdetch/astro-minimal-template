@@ -14,15 +14,19 @@ const description = 'A minimal Astro starter with strictest TypeScript, shared m
     <p>
       Start with ordinary Astro files and add what your project needs.
       The default page uses native HTML, without application JavaScript,
-      author CSS or a website font dependency.
+      author CSS or a website font dependency. What it does include is the
+      groundwork most sites redo by hand: complete page metadata, crawler files
+      and checks that fail the build before a broken page goes live.
     </p>
 
     <section aria-labelledby="included">
       <h2 id="included">What's included</h2>
       <ul>
         <li>Strictest TypeScript and a shared layout with typed metadata props.</li>
+        <li>Page titles that carry the site name, a homepage title that says what the site does, and <code>WebSite</code> structured data.</li>
         <li>Canonical URLs, an official sitemap, generated robots.txt and a 404 page.</li>
         <li>Optional automatic title cards, manual social images and page-level noindex.</li>
+        <li>An author credit and source link from one configuration file.</li>
         <li>Replaceable icons, build checks and <a href="https://deadhead.cevdet.ch">deadhead</a> HTML auditing.</li>
       </ul>
     </section>
@@ -31,6 +35,7 @@ const description = 'A minimal Astro starter with strictest TypeScript, shared m
       <h2 id="start">Make it yours</h2>
       <ol>
         <li>Set your production <code>site</code> in <code>astro.config.mjs</code>, or pass it with <code>--site</code> when building.</li>
+        <li>Set your site name, author and repository in <code>src/config.ts</code>.</li>
         <li>Edit <code>src/pages/index.astro</code> and add routes in <code>src/pages/</code>.</li>
         <li>Use <code>src/layouts/Layout.astro</code> with a title and description for each page.</li>
         <li>Generate your icons with <a href="https://favseed.cevdet.ch">favseed</a> and replace the matching files in <code>public/</code>.</li>
@@ -42,6 +47,21 @@ const description = 'A minimal Astro starter with strictest TypeScript, shared m
         The <a href="https://docs.astro.build">Astro documentation</a> covers
         routing, components, styles and deployment.
       </p>
+    </section>
+
+    {/* Remove this section together with src/pages/docs/. */}
+    <section aria-labelledby="docs">
+      <h2 id="docs">Documentation</h2>
+      <p>
+        Short <a href="docs/">guides</a> explain what the starter does and how to
+        take it further:
+      </p>
+      <ul>
+        <li><a href="docs/seo/">SEO and metadata defaults</a>: titles, canonical URLs, sitemap, robots rules, social images and structured data.</li>
+        <li><a href="docs/build-checks/">Build checks</a>: what <code>pnpm verify</code> runs and what each check catches.</li>
+        <li><a href="docs/cloudflare-pages/">Deploying to Cloudflare Pages</a>: build settings, previews, a custom domain and headers.</li>
+        <li><a href="docs/make-it-yours/">Making the starter yours</a>: configuration, icons, title cards and removing these guides.</li>
+      </ul>
     </section>
   </main>
 </Layout>

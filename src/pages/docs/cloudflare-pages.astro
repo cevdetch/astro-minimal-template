@@ -1,0 +1,138 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GuideNav from './_GuideNav.astro';
+import { guides } from './_guides.ts';
+
+const guide = guides.find(item => item.path === 'cloudflare-pages/')!;
+const headers = `https://:project.pages.dev/*
+  X-Robots-Tag: noindex
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable`;
+---
+
+<Layout title={guide.title} description={guide.description}>
+  <main>
+    <h1>{guide.title}</h1>
+    <p>{guide.description}</p>
+    <p>
+      The starter builds a fully static site, so Cloudflare Pages can serve it
+      straight from the build output with no adapter and no server code. This
+      page covers the settings that matter for search: the production URL in the
+      build, previews that stay out of search results, one address per page and
+      the response headers worth adding.
+    </p>
+
+    <section aria-labelledby="settings">
+      <h2 id="settings">Build settings</h2>
+      <p>
+        In the Cloudflare dashboard, create a Pages project and connect your
+        repository. Use these settings, with your own domain in place of the
+        example:
+      </p>
+      <dl>
+        <dt>Production branch</dt>
+        <dd><code>main</code></dd>
+        <dt>Build command</dt>
+        <dd><code>{'pnpm build --site https://example.com && pnpm verify:output && pnpm lint:html'}</code></dd>
+        <dt>Build output directory</dt>
+        <dd><code>dist</code></dd>
+        <dt>Environment variables</dt>
+        <dd><code>NODE_VERSION</code> set to <code>24.8.0</code> and <code>PNPM_VERSION</code> set to <code>12.3.4</code>, matching <code>packageManager</code> in <code>package.json</code></dd>
+      </dl>
+      <p>
+        <code>--site</code> gives the build its production origin without writing
+        it into the source, which keeps a fresh fork from publishing canonical
+        URLs that point at someone else's domain. If you set <code>site</code> in
+        <code>astro.config.mjs</code> instead, the command can start with
+        <code>pnpm build</code>. The two checks after the build read the record it
+        leaves behind; if either fails, the deployment fails and the previous one
+        stays live. The <a href="../build-checks/">build checks guide</a> explains
+        what they look for.
+      </p>
+    </section>
+
+    <section aria-labelledby="previews">
+      <h2 id="previews">Preview deployments</h2>
+      <p>
+        Every branch and pull request gets its own preview address under
+        <code>pages.dev</code>. Cloudflare already sends
+        <code>X-Robots-Tag: noindex</code> for requests to preview addresses. To
+        mark the pages themselves as well, add <code>SITE_NOINDEX</code> with the
+        value <code>true</code> to the preview environment's variables and leave
+        it unset for production. Keep the production origin in the preview build
+        command: canonical URLs then point at the real site, so a preview that
+        does get crawled credits production rather than competing with it.
+      </p>
+    </section>
+
+    <section aria-labelledby="domain">
+      <h2 id="domain">A custom domain, and one address per page</h2>
+      <p>
+        Add your domain under the project's custom domains; the
+        <code>site</code> value only controls generated URLs and does not touch
+        DNS. Once the domain works, the same pages are still reachable at
+        <code>your-project.pages.dev</code>. The canonical links already name
+        your domain, but a redirect is cleaner. Cloudflare does this with Bulk
+        Redirects: create a list with <code>your-project.pages.dev</code> as the
+        source, <code>https://example.com</code> as the target and status
+        <code>301</code>, tick preserve query string, subpath matching and
+        preserve path suffix, then create a Bulk Redirect rule that uses the
+        list. Include subdomains also redirects the preview addresses under
+        <code>your-project.pages.dev</code>, so leave it unticked if you review
+        previews there.
+      </p>
+      <p>
+        Within your domain, Pages serves <code>about/index.html</code> at
+        <code>/about/</code> and redirects both <code>/about</code> and
+        <code>/about/index.html</code> there. That matches the starter's
+        <code>trailingSlash: 'always'</code>, so canonical links, the sitemap and
+        the served URL are the same address.
+      </p>
+    </section>
+
+    <section aria-labelledby="not-found">
+      <h2 id="not-found">The 404 page</h2>
+      <p>
+        Keep <code>src/pages/404.astro</code>. Pages serves a top-level
+        <code>404.html</code> with a real 404 status for unknown paths. Without
+        one, Pages treats the project as a single-page application and answers
+        every unknown path with the homepage and a 200 status, which search
+        engines report as soft 404s.
+      </p>
+    </section>
+
+    <section aria-labelledby="headers">
+      <h2 id="headers">Response headers</h2>
+      <p>
+        Pages sends <code>Cache-Control: public, max-age=0, must-revalidate</code>
+        with an <code>ETag</code> by default, so browsers revalidate each file.
+        That suits the starter: title cards, icons and pages keep the same URL
+        when their content changes. To add headers, create
+        <code>public/_headers</code>; Astro copies it into the output. This
+        example keeps the <code>pages.dev</code> address out of search results
+        if you skip the redirect, and caches the fingerprinted files Astro writes
+        to <code>/_astro/</code> once you add styles or scripts:
+      </p>
+      <pre><code>{headers}</code></pre>
+      <p>
+        A <code>_headers</code> file takes up to 100 rules with lines of up to
+        2,000 characters. It applies to static files only, not to responses from
+        Pages Functions. Do not mark title cards or icons as immutable; they
+        would stay stale in caches after you change them.
+      </p>
+    </section>
+
+    <section aria-labelledby="after">
+      <h2 id="after">After the first deployment</h2>
+      <p>
+        Open <code>/robots.txt</code> and <code>/sitemap-index.xml</code> on your
+        domain and check that they name it. View the source of a page and check its
+        canonical link. Then add the domain to Google Search Console and Bing
+        Webmaster Tools and submit the sitemap index in both.
+      </p>
+    </section>
+
+    <GuideNav current={guide.path} />
+  </main>
+</Layout>
