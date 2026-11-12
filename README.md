@@ -55,6 +55,7 @@ Preserve the existing imports and integration order:
 ```js
 export default defineConfig({
   site: 'https://example.com',
+  trailingSlash: 'always',
   integrations: [
     siteValidation(),
     indexing.collect,
@@ -69,6 +70,15 @@ export default defineConfig({
 A build fails if `site` is missing or includes credentials, a path, a query, or
 a fragment. HTTP and HTTPS origins
 may include a port and a root slash. Development works without `site`.
+
+`trailingSlash: 'always'` makes every page URL end in a slash, such as
+`/about/`. That matches Astro's default directory output, where `about.astro`
+becomes `about/index.html`: static hosts such as Cloudflare Pages serve that file
+at `/about/` and redirect `/about` there. Canonical links, Open Graph URLs, the
+sitemap all use the slash form, so link to pages
+with it too. The development server answers `/about` with a 404 that names the
+expected form, so a link without the slash shows up before deployment. If you
+change the setting after launch, redirect the old URLs to the new form.
 
 For a subpath deployment, set `base: '/project/'` alongside the origin. Leave
 `base` out for a site at the domain root. See Astro's

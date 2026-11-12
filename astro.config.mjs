@@ -12,6 +12,8 @@ export default defineConfig({
   // Set your production origin here, or pass --site when building.
   // site: 'https://example.com',
   // Add base only when deploying under a subpath.
+  // Page URLs end in a slash, matching directory output on static hosts.
+  trailingSlash: 'always',
   integrations: [
     siteValidation(),
     indexing.collect,
