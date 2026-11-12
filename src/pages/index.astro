@@ -1,13 +1,15 @@
 ---
+import { siteConfig } from '../config.ts';
 import Layout from '../layouts/Layout.astro';
 
-const title = 'Astro Minimal Template';
+// With home, the document title reads "<site name>: <title>".
+const title = 'a strict, SEO-ready Astro starter';
 const description = 'A minimal Astro starter with strictest TypeScript, shared metadata, automatic social images and browser-native styling.';
 ---
 
-<Layout title={title} description={description}>
+<Layout home title={title} description={description}>
   <main>
-    <h1>{title}</h1>
+    <h1>{siteConfig.name}</h1>
     <p>{description}</p>
     <p>
       Start with ordinary Astro files and add what your project needs.

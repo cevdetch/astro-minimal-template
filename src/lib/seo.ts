@@ -3,6 +3,7 @@ export type Direction = 'ltr' | 'rtl' | 'auto';
 export interface LayoutProps {
   title: string;
   description: string;
+  home?: boolean;
   lang?: string;
   dir?: Direction;
   canonical?: string | false;
@@ -17,6 +18,7 @@ export interface SeoContext {
   mode: 'dev' | 'build' | 'server';
   siteNoindex: boolean;
   socialImages: boolean;
+  siteName?: string | undefined;
 }
 
 export interface PagePolicy { pathname: string; noindex: boolean }
@@ -29,6 +31,7 @@ export interface ResolvedSeo {
   canonicalUrl?: string;
   robotsNoindex: boolean;
   faviconHref: string;
+  siteName?: string;
   social?: { url: string; imageUrl: string; imageAlt?: string };
   pagePolicy?: PagePolicy;
   generatedImageUrl?: string;
@@ -113,9 +116,24 @@ function requiredText(value: unknown, name: string): string {
   return value;
 }
 
+/**
+ * Inner pages read `Page · Site`; the homepage reads `Site: what it does`.
+ * The middle dot is narrow, so more of the page's own title survives truncation.
+ */
+export function formatTitle(title: string, siteName: string | undefined, home: boolean): string {
+  if (siteName === undefined) return title;
+  return home ? `${siteName}: ${title}` : `${title} · ${siteName}`;
+}
+
 export async function resolveSeo(props: LayoutProps, context: SeoContext): Promise<ResolvedSeo> {
-  const title = requiredText(props.title, 'title');
+  const pageTitle = requiredText(props.title, 'title');
   const description = requiredText(props.description, 'description');
+  if (props.home !== undefined && typeof props.home !== 'boolean') {
+    throw new Error('home must be a boolean.');
+  }
+  const siteName = context.siteName === undefined
+    ? undefined : requiredText(context.siteName, 'siteConfig.name');
+  const title = formatTitle(pageTitle, siteName, props.home ?? false);
   const lang = props.lang === undefined ? 'en' : requiredText(props.lang, 'lang');
   if (props.dir !== undefined && !['ltr', 'rtl', 'auto'].includes(props.dir)) {
     throw new Error('dir must be ltr, rtl or auto.');
@@ -143,6 +161,7 @@ export async function resolveSeo(props: LayoutProps, context: SeoContext): Promi
     faviconHref: getFaviconHref(context.base),
   };
   if (props.dir !== undefined) seo.dir = props.dir;
+  if (siteName !== undefined) seo.siteName = siteName;
   if (context.mode === 'build') {
     seo.pagePolicy = { pathname: context.url.pathname, noindex };
   }

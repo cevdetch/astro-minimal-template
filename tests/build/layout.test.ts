@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
+import { siteConfig } from '../../src/config.ts';
 import { createBuildFixture } from '../helpers/build-fixture.ts';
 
 const layout = new URL('../../src/layouts/Layout.astro', import.meta.url).href;
@@ -8,6 +9,7 @@ const integration = new URL('../../src/integrations/site.ts', import.meta.url).h
 const indexing = new URL('../../src/integrations/indexing.ts', import.meta.url).href;
 const collector = `import { createIndexing } from ${JSON.stringify(indexing)};\nconst indexing = createIndexing();`;
 const text = { title: 'A <page> & "quote"', description: 'Details & <ideas> with "quotes".' };
+const fullTitle = (title: string) => `${title} · ${siteConfig.name}`;
 const page = (props: Record<string, unknown>) => `---
 import Layout from ${JSON.stringify(layout)};
 const props = ${JSON.stringify({ ...text, image: false, ...props })};
@@ -66,7 +68,7 @@ export default { site: 'https://example.test', base: ${JSON.stringify(base)},
       const read = (path: string) => readFile(new URL(path, result.outDir), 'utf8');
       const routeFile = (route: string) => format === 'directory' ? `${route}/index.html` : `${route}.html`;
       const home = await read('index.html');
-      assert.equal(decode(/<title>([\s\S]*?)<\/title>/.exec(home)?.[1] ?? ''), text.title);
+      assert.equal(decode(/<title>([\s\S]*?)<\/title>/.exec(home)?.[1] ?? ''), fullTitle(text.title));
       assert.deepEqual(meta(home, 'description'), [text.description]);
       assert.deepEqual(meta(home, 'viewport'), ['width=device-width']);
       assert.deepEqual(meta(home, 'color-scheme'), ['light dark']);
@@ -85,8 +87,9 @@ export default { site: 'https://example.test', base: ${JSON.stringify(base)},
       const manual = await read(routeFile('nested/manual'));
       assert.deepEqual(canonical(manual), [`https://example.test${base}original/?edition=2&lang=en`]);
       assert.deepEqual(meta(manual, 'robots'), ['noindex']);
-      assert.deepEqual(meta(manual, 'og:title'), [text.title]);
+      assert.deepEqual(meta(manual, 'og:title'), [fullTitle(text.title)]);
       assert.deepEqual(meta(manual, 'og:description'), [text.description]);
+      assert.deepEqual(meta(manual, 'og:site_name'), [siteConfig.name]);
       assert.deepEqual(meta(manual, 'og:type'), ['website']);
       assert.deepEqual(meta(manual, 'og:url'), [`https://example.test${base}original/?edition=2&lang=en`]);
       assert.deepEqual(meta(manual, 'og:image'), [`https://example.test${base}images/share.png?v=1&crop=wide`]);
@@ -96,7 +99,7 @@ export default { site: 'https://example.test', base: ${JSON.stringify(base)},
         const key = tag['property'] ?? tag['name'] ?? '';
         return /^(og:|twitter:)/.test(key) ? [key] : [];
       });
-      assert.deepEqual(socialKeys, ['og:type', 'og:url', 'og:title', 'og:description', 'og:image', 'og:image:alt', 'twitter:card']);
+      assert.deepEqual(socialKeys, ['og:type', 'og:url', 'og:title', 'og:description', 'og:site_name', 'og:image', 'og:image:alt', 'twitter:card']);
 
       const noCanonical = await read(routeFile('nested/no-canonical'));
       assert.deepEqual(canonical(noCanonical), []);
@@ -150,10 +153,32 @@ test('metadata values cannot inject tags or attributes into the head', async t =
   const result = await fixture.build();
   assert.equal(result.code, 0, result.log);
   const html = await readFile(new URL('index.html', result.outDir), 'utf8');
-  assert.equal(decode(/<title>([\s\S]*?)<\/title>/.exec(html)?.[1] ?? ''), injected.title);
+  assert.equal(decode(/<title>([\s\S]*?)<\/title>/.exec(html)?.[1] ?? ''), fullTitle(injected.title));
   assert.deepEqual(meta(html, 'description'), [injected.description]);
-  assert.deepEqual(meta(html, 'og:title'), [injected.title]);
+  assert.deepEqual(meta(html, 'og:title'), [fullTitle(injected.title)]);
   assert.deepEqual(meta(html, 'og:image:alt'), [injected.description]);
   assert.deepEqual(meta(html, 'injected'), []);
   assert.deepEqual(tags(html, 'script'), []);
+});
+
+test('the site name ends inner page titles and starts the homepage title', async t => {
+  const fixture = await createBuildFixture({
+    configSource: `${collector}\nexport default { site: 'https://example.test', integrations: [indexing.collect] };`,
+    pages: {
+      'index.astro': page({ title: 'what the site does', home: true, image: { src: '/share.png' } }),
+      'about.astro': page({ title: 'About', image: { src: '/share.png' } }),
+    },
+  });
+  t.after(() => fixture.cleanup());
+  const result = await fixture.build();
+  assert.equal(result.code, 0, result.log);
+  for (const [file, expected] of [
+    ['index.html', `${siteConfig.name}: what the site does`],
+    ['about/index.html', `About · ${siteConfig.name}`],
+  ] as const) {
+    const html = await readFile(new URL(file, result.outDir), 'utf8');
+    assert.equal(decode(/<title>([\s\S]*?)<\/title>/.exec(html)?.[1] ?? ''), expected);
+    assert.deepEqual(meta(html, 'og:title'), [expected]);
+    assert.deepEqual(meta(html, 'og:site_name'), [siteConfig.name]);
+  }
 });

@@ -12,6 +12,7 @@ const seo = await resolveSeo(Astro.props, {
   mode: import.meta.env.DEV ? 'dev' : Astro.isPrerendered ? 'build' : 'server',
   siteNoindex: parseSiteNoindex(import.meta.env['SITE_NOINDEX']),
   socialImages: siteConfig.socialImages,
+  siteName: siteConfig.name,
 });
 ---
 
@@ -35,6 +36,7 @@ const seo = await resolveSeo(Astro.props, {
         <meta property="og:url" content={seo.social.url} />
         <meta property="og:title" content={seo.title} />
         <meta property="og:description" content={seo.description} />
+        {seo.siteName !== undefined && <meta property="og:site_name" content={seo.siteName} />}
         <meta property="og:image" content={seo.social.imageUrl} />
         {seo.social.imageAlt !== undefined && <meta property="og:image:alt" content={seo.social.imageAlt} />}
         <meta name="twitter:card" content="summary_large_image" />

@@ -121,8 +121,8 @@ settings; the `site` value controls generated URLs and does not configure DNS.
 ## Page metadata
 
 Use `src/layouts/Layout.astro` for each full page. Supply a nonblank `title` and
-`description`; the layout preserves their complete text and escapes it as HTML.
-For example, in `src/pages/about.astro`:
+`description`; the layout preserves their complete text, adds the site name to
+the title and escapes both as HTML. For example, in `src/pages/about.astro`:
 
 ```astro
 ---
@@ -139,13 +139,38 @@ import Layout from '../layouts/Layout.astro';
 
 | Prop | Type | Behavior |
 | --- | --- | --- |
-| `title` | `string`, required | Full HTML title and, when an image exists, Open Graph title |
+| `title` | `string`, required | Page title; with the site name added, the HTML title and, when an image exists, Open Graph title |
 | `description` | `string`, required | HTML description and, when an image exists, Open Graph description |
+| `home` | `boolean` | Defaults to `false`; `true` puts the site name first, for the homepage |
 | `lang` | `string` | Defaults to `en`; supply a nonblank language tag |
 | `dir` | `'ltr' \| 'rtl' \| 'auto'` | Omitted by default; set direction when needed |
 | `canonical` | `string \| false` | Defaults to the production page URL; override it or pass `false` to omit the link |
 | `noindex` | `boolean` | Defaults to `false`; `true` adds `<meta name="robots" content="noindex">` |
 | `image` | `{ src?: string; alt?: string } \| false` | Omit `src` for an automatic title card; supply `src` for a manual image, or use `false` for no social block |
+
+### Titles
+
+Set the site name once in `src/config.ts`:
+
+```ts
+export const siteConfig: SiteConfig = {
+  name: 'Your project',
+  socialImages: true,
+};
+```
+
+The layout adds it after each page title with a middle dot, so `title="About"`
+becomes `About · Your project`. On the homepage, pass `home` and describe what
+the site does in `title`; the site name then comes first:
+
+```astro
+<Layout home title="a short line on what it does" description="What your project offers.">
+```
+
+That renders `Your project: a short line on what it does`. Search results cut
+long titles short, so put the words that tell your pages apart first. The site
+name also fills `og:site_name` on pages with a social image, and automatic title
+cards show the complete title.
 
 Language and direction are separate. For a right-to-left page, use a suitable
 language tag and set `dir="rtl"`. Use a manual image or disable the social block
@@ -196,8 +221,8 @@ Add your image to `public/`, or use an absolute image URL. Pass its path in
 </Layout>
 ```
 
-With an image, the layout adds Open Graph type, URL, title, description and image,
-plus `twitter:card="summary_large_image"`. `og:url` follows the canonical override;
+With an image, the layout adds Open Graph type, URL, title, description, site name
+and image, plus `twitter:card="summary_large_image"` after the image tags. `og:url` follows the canonical override;
 with `canonical={false}`, it uses the production page URL.
 
 `image.alt` is optional. Supply it when you want an image description; missing

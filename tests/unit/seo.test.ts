@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { resolveSeo, type LayoutProps, type SeoContext } from '../../src/lib/seo.ts';
+import { formatTitle, resolveSeo, type LayoutProps, type SeoContext } from '../../src/lib/seo.ts';
 
 const props: LayoutProps = { title: 'A page', description: 'A page description.' };
 const context: SeoContext = {
@@ -33,6 +33,7 @@ test('required text, language, direction and noindex reject invalid runtime prop
     { dir: '' }, { noindex: 'true' }, { noindex: 'false' }, { noindex: 0 },
     { noindex: null }, { canonical: true }, { image: null }, { image: true },
     { image: { src: '' } }, { image: { src: ' ' } }, { image: { alt: true } },
+    { home: 'true' }, { home: 1 },
   ];
   for (const overrides of invalid) {
     await assert.rejects(resolveSeo({ ...props, ...overrides } as LayoutProps, context));
@@ -146,4 +147,20 @@ test('automatic image planning follows page eligibility, controls and opt-in alt
   const manual = await resolveSeo({ ...props, image: { src: '/manual.png' } }, setup);
   assert.equal(manual.generatedImageUrl, undefined);
   assert.equal(manual.social?.imageUrl, 'https://example.test/manual.png');
+});
+
+test('the site name follows inner page titles and leads the homepage title', async () => {
+  assert.equal(formatTitle('About', 'Site', false), 'About · Site');
+  assert.equal(formatTitle('what it does', 'Site', true), 'Site: what it does');
+  assert.equal(formatTitle('About', undefined, true), 'About');
+  const named = { ...context, siteName: 'Site' };
+  assert.equal((await resolveSeo(props, named)).title, 'A page · Site');
+  assert.equal((await resolveSeo({ ...props, home: false }, named)).title, 'A page · Site');
+  const home = await resolveSeo({ ...props, home: true, image: { src: '/share.png' } }, named);
+  assert.equal(home.title, 'Site: A page');
+  assert.equal(home.siteName, 'Site');
+  assert.equal((await resolveSeo(props, context)).siteName, undefined);
+  for (const siteName of ['', ' \n']) {
+    await assert.rejects(resolveSeo(props, { ...context, siteName }), /siteConfig\.name/);
+  }
 });

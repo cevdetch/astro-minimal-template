@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { cp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import sharp from 'sharp';
+import { siteConfig } from '../../src/config.ts';
 import { parseDocument } from '../../src/integrations/documents.ts';
 import { createBuildFixture } from '../helpers/build-fixture.ts';
 
@@ -32,9 +33,16 @@ async function consumer(t: { after(fn: () => Promise<void>): void }, options: { 
   await cp(new URL('../../src/pages/robots.txt.ts', import.meta.url), new URL('src/pages-source/robots.txt.ts', fixture.root));
   return fixture;
 }
+// Edit the copied config the way the README describes, keeping its other settings.
+async function setSocialImages(root: URL, enabled: boolean) {
+  const file = new URL('src/config.ts', root);
+  const source = await readFile(file, 'utf8');
+  assert.match(source, /socialImages: (?:true|false),/);
+  await writeFile(file, source.replace(/socialImages: (?:true|false),/, `socialImages: ${enabled},`));
+}
 const digest = (pathname: string) => createHash('sha256').update(pathname).digest('hex');
 async function verifyImage(outDir: URL, parsed: ReturnType<typeof parseDocument>, pathname: string, base = '/') {
-  assert.equal(parsed.title, 'Fixture & full title');
+  assert.equal(parsed.title, `Fixture & full title · ${siteConfig.name}`);
   assert.equal(parsed.description, 'Full description & detail');
   assert.equal(parsed.imageUrl, `https://example.test${base}_social/${digest(pathname)}.png`);
   const bytes = await readFile(new URL(`_social/${digest(pathname)}.png`, outDir));
@@ -117,11 +125,11 @@ test('route deletion, manual override, global disable and zero eligible leave no
   result=await fixture.build();assert.equal(result.code,0,result.log);
   await assert.rejects(readdir(new URL('_social/',result.outDir)),{code:'ENOENT'});
   await rm(new URL('src/assets/social-fonts/',fixture.root),{recursive:true});
-  await writeFile(new URL('src/config.ts',fixture.root),'export const siteConfig={socialImages:false};');
+  await setSocialImages(fixture.root,false);
   await writeFile(new URL('src/pages/index.astro',fixture.root),page());
   result=await fixture.build();assert.equal(result.code,0,result.log);
   assert.equal(parseDocument(await readFile(new URL('index.html',result.outDir),'utf8')).imageUrl,undefined);
-  await writeFile(new URL('src/config.ts',fixture.root),'export const siteConfig={socialImages:true};');
+  await setSocialImages(fixture.root,true);
   await writeFile(new URL('src/pages/index.astro',fixture.root),page('{image:false}'));
   result=await fixture.build();assert.equal(result.code,0,result.log);
 });
@@ -130,7 +138,7 @@ test('reserved public, route and manual-image collisions preserve consumer files
   for(const kind of ['public','route','manual','file','symlink']) {
     const fixture=await consumer(t,{pages:kind==='route'?{'[...slug].astro':'---\nexport function getStaticPaths(){return [{params:{slug:"_social/mine"}}];}\n---\n<html><head><title>Mine</title></head><body>Mine</body></html>'}:kind==='manual'?{'index.astro':page('{image:{src:"_social/mine.png"}}')}:{},publicFiles:kind==='public'?{'_social/mine.txt':'consumer'}:kind==='file'?{'_social':'consumer'}:kind==='symlink'?{'owned/keep.txt':'consumer'}:{}});
     if(kind==='symlink') await symlink('owned',new URL('public/_social',fixture.root),'dir');
-    await writeFile(new URL('src/config.ts',fixture.root),'export const siteConfig={socialImages:false};');
+    await setSocialImages(fixture.root,false);
     const result=await fixture.build();assert.notEqual(result.code,0,result.log);assert.match(result.log,/namespace|occupied/);
     if(kind==='symlink') assert.equal(await readFile(new URL('public/owned/keep.txt',fixture.root),'utf8'),'consumer');
     if(kind==='public'||kind==='file') assert.equal(await readFile(new URL(kind==='public'?'public/_social/mine.txt':'public/_social',fixture.root),'utf8'),'consumer');
@@ -153,7 +161,7 @@ test('unsupported glyph and unknown marker failures clear receipt; recovery succ
 
 test('physical removal builds manual metadata and crawlers with normal remaining dependencies', async t => {
   const fixture = await consumer(t);
-  await writeFile(new URL('src/config.ts', fixture.root), 'export const siteConfig={socialImages:false};');
+  await setSocialImages(fixture.root, false);
   const original = config();
   await writeFile(new URL('fixture.config.mjs', fixture.root), original
     .replace("import { socialImages } from './src/integrations/social-images.ts';", '')
