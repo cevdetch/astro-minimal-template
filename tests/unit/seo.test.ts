@@ -150,12 +150,12 @@ test('automatic image planning follows page eligibility, controls and opt-in alt
 });
 
 test('the site name follows inner page titles and leads the homepage title', async () => {
-  assert.equal(formatTitle('About', 'Site', false), 'About · Site');
+  assert.equal(formatTitle('About', 'Site', false), 'About - Site');
   assert.equal(formatTitle('what it does', 'Site', true), 'Site: what it does');
   assert.equal(formatTitle('About', undefined, true), 'About');
   const named = { ...context, siteName: 'Site' };
-  assert.equal((await resolveSeo(props, named)).title, 'A page · Site');
-  assert.equal((await resolveSeo({ ...props, home: false }, named)).title, 'A page · Site');
+  assert.equal((await resolveSeo(props, named)).title, 'A page - Site');
+  assert.equal((await resolveSeo({ ...props, home: false }, named)).title, 'A page - Site');
   const home = await resolveSeo({ ...props, home: true, image: { src: '/share.png' } }, named);
   assert.equal(home.title, 'Site: A page');
   assert.equal(home.siteName, 'Site');

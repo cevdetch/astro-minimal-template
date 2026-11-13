@@ -23,8 +23,9 @@ const guide = guides.find(item => item.path === 'seo/')!;
       <p>
         Every page passes a <code>title</code> and a <code>description</code>; the
         build fails if either is missing or blank. The layout adds the site name
-        from <code>src/config.ts</code> after the page title with a middle dot, so
-        a page titled <q>About</q> gets <code>About · Your project</code>. The
+        from <code>src/config.ts</code> after the page title with a hyphen, the
+        delimiter Google's own guidance names, so a page titled <q>About</q> gets
+        <code>About - Your project</code>. The
         homepage passes <code>home</code> and a short line on what the site does,
         and the site name comes first instead:
         <code>Your project: a short line on what it does</code>.

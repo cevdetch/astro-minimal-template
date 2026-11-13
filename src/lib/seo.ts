@@ -159,12 +159,12 @@ export function getWebSiteJsonLd(name: string, url: string, author: Person | und
 }
 
 /**
- * Inner pages read `Page · Site`; the homepage reads `Site: what it does`.
- * The middle dot is narrow, so more of the page's own title survives truncation.
+ * Inner pages read `Page - Site`; the homepage reads `Site: what it does`.
+ * Google names the hyphen as a title delimiter it recognises.
  */
 export function formatTitle(title: string, siteName: string | undefined, home: boolean): string {
   if (siteName === undefined) return title;
-  return home ? `${siteName}: ${title}` : `${title} · ${siteName}`;
+  return home ? `${siteName}: ${title}` : `${title} - ${siteName}`;
 }
 
 export async function resolveSeo(props: LayoutProps, context: SeoContext): Promise<ResolvedSeo> {

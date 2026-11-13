@@ -42,7 +42,7 @@ async function setSocialImages(root: URL, enabled: boolean) {
 }
 const digest = (pathname: string) => createHash('sha256').update(pathname).digest('hex');
 async function verifyImage(outDir: URL, parsed: ReturnType<typeof parseDocument>, pathname: string, base = '/') {
-  assert.equal(parsed.title, `Fixture & full title · ${siteConfig.name}`);
+  assert.equal(parsed.title, `Fixture & full title - ${siteConfig.name}`);
   assert.equal(parsed.description, 'Full description & detail');
   assert.equal(parsed.imageUrl, `https://example.test${base}_social/${digest(pathname)}.png`);
   const bytes = await readFile(new URL(`_social/${digest(pathname)}.png`, outDir));

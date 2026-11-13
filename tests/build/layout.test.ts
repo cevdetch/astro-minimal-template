@@ -9,7 +9,7 @@ const integration = new URL('../../src/integrations/site.ts', import.meta.url).h
 const indexing = new URL('../../src/integrations/indexing.ts', import.meta.url).href;
 const collector = `import { createIndexing } from ${JSON.stringify(indexing)};\nconst indexing = createIndexing();`;
 const text = { title: 'A <page> & "quote"', description: 'Details & <ideas> with "quotes".' };
-const fullTitle = (title: string) => `${title} · ${siteConfig.name}`;
+const fullTitle = (title: string) => `${title} - ${siteConfig.name}`;
 const page = (props: Record<string, unknown>) => `---
 import Layout from ${JSON.stringify(layout)};
 const props = ${JSON.stringify({ ...text, image: false, ...props })};
@@ -174,7 +174,7 @@ test('the site name ends inner page titles and starts the homepage title', async
   assert.equal(result.code, 0, result.log);
   for (const [file, expected] of [
     ['index.html', `${siteConfig.name}: what the site does`],
-    ['about/index.html', `About · ${siteConfig.name}`],
+    ['about/index.html', `About - ${siteConfig.name}`],
   ] as const) {
     const html = await readFile(new URL(file, result.outDir), 'utf8');
     assert.equal(decode(/<title>([\s\S]*?)<\/title>/.exec(html)?.[1] ?? ''), expected);
