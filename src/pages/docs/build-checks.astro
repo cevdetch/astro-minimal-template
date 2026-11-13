@@ -1,0 +1,115 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GuideNav from './_GuideNav.astro';
+import { guides } from './_guides.ts';
+
+const guide = guides.find(item => item.path === 'build-checks/')!;
+---
+
+<Layout title={guide.title} description={guide.description}>
+  <main>
+    <h1>{guide.title}</h1>
+    <p>{guide.description}</p>
+    <p>
+      <code>astro build</code> turns your pages into HTML, but it does not run
+      the type checker, does not run tests and does not look at the result. A
+      page with a missing description, or with social tags that disagree with
+      its canonical URL, builds without complaint. The starter adds checks around the build so
+      those mistakes stop a deployment instead of reaching search engines.
+    </p>
+
+    <section aria-labelledby="verify">
+      <h2 id="verify">One command: <code>pnpm verify</code></h2>
+      <p>
+        Run <code>pnpm verify</code> before you commit, with your production
+        <code>site</code> configured. It runs six steps in order and stops at the
+        first failure:
+      </p>
+      <ol>
+        <li><code>pnpm check</code> runs <code>astro check</code>: Astro diagnostics and TypeScript in its strictest preset, across pages, components and scripts.</li>
+        <li><code>pnpm test</code> runs the unit tests with Node's built-in test runner: metadata resolution, URL rules, the build receipt, the output checks and title-card drawing.</li>
+        <li><code>pnpm test:build</code> builds small fixture projects with the real Astro CLI and checks the rendered metadata, the sitemap selection and title cards across output formats and subpaths.</li>
+        <li><code>pnpm build</code> builds your site into <code>dist/</code>.</li>
+        <li><code>pnpm verify:output</code> checks that output.</li>
+        <li><code>pnpm lint:html</code> audits the HTML with deadhead.</li>
+      </ol>
+      <p>
+        One build test removes the title-card feature and its package the way
+        the README describes, so it may need registry access even after a
+        frozen install.
+      </p>
+    </section>
+
+    <section aria-labelledby="build">
+      <h2 id="build">Checks inside the build</h2>
+      <p>
+        Some rules run during <code>pnpm build</code> itself, so they protect
+        every build, including one started by a host. The build fails when
+        <code>site</code> is missing or includes a path, credentials, a query or a
+        fragment; when two routes would write the same file; when a title card
+        cannot be drawn, for example because the font lacks a glyph; or when the
+        sitemap the official integration wrote does not match the pages selected
+        for it. A failed build also deletes the previous build record, so the
+        later checks cannot pass against stale output.
+      </p>
+    </section>
+
+    <section aria-labelledby="output">
+      <h2 id="output">What <code>verify:output</code> checks</h2>
+      <p>
+        A successful build records its origin, base, output directory and the
+        pages it emitted in <code>.astro/starter-build.json</code>. The output
+        check reads that record, so a build with <code>--site</code>,
+        <code>--base</code> or <code>--outDir</code> is checked where it actually
+        went. For every page that uses the layout it confirms:
+      </p>
+      <ul>
+        <li>exactly one nonblank title and description, and a nonblank language;</li>
+        <li>an absolute HTTP(S) canonical URL without a fragment;</li>
+        <li>a complete social block whose title, description and URL agree with the page, with <code>summary_large_image</code> as the card type;</li>
+        <li>a generated title card that decodes as a 1200×630 PNG and belongs to the page that names it;</li>
+        <li>no internal build markers left in the HTML.</li>
+      </ul>
+      <p>
+        It then compares <code>robots.txt</code> and every sitemap file with the
+        recorded selection. Your own CSS, scripts and fonts are allowed; pages
+        that bypass the layout keep their own metadata rules.
+      </p>
+    </section>
+
+    <section aria-labelledby="deadhead">
+      <h2 id="deadhead">The deadhead HTML audit</h2>
+      <p>
+        <a href="https://deadhead.cevdet.ch/install">deadhead</a> lints HTML for
+        deprecated, unnecessary and harmful markup. The pinned version, 0.3.1,
+        has 203 rules, covering problems such as a
+        missing viewport tag, <code>rel="shortcut icon"</code> or a keywords meta
+        tag that no major search engine reads. Every finding links to an
+        explanation with sources. <code>pnpm lint:html</code> runs the published
+        CLI over the whole recorded output directory, including HTML copied
+        from <code>public/</code>, with its default rules and threshold: any
+        finding fails the step. It changes no files, applies no fixes and keeps
+        no baseline, so what you see is what ships.
+      </p>
+    </section>
+
+    <section aria-labelledby="ci">
+      <h2 id="ci">In CI and on the host</h2>
+      <p>
+        The GitHub Actions workflow runs the same steps on Node 24.8.0 and the
+        latest LTS release, with a frozen pnpm install and Actions pinned to
+        commits. It builds with <code>https://example.test</code> as the origin,
+        so your own <code>site</code> stays yours to set. On the host, chain the
+        checks after the build:
+      </p>
+      <pre><code>{'pnpm build --site https://example.com && pnpm verify:output && pnpm lint:html'}</code></pre>
+      <p>
+        If either check fails, the host gets a failing command and keeps the
+        previous deployment. The <a href="../cloudflare-pages/">Cloudflare Pages
+        guide</a> shows where that command goes.
+      </p>
+    </section>
+
+    <GuideNav current={guide.path} />
+  </main>
+</Layout>

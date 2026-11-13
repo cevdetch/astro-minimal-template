@@ -1,0 +1,60 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { guides } from './_guides.ts';
+
+const home = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
+const description = 'Guides to this Astro starter: its search and metadata defaults, the build checks, deploying to Cloudflare Pages and making a copy your own.';
+---
+
+<Layout title="Documentation" description={description}>
+  <main>
+    <h1>Documentation</h1>
+    <p>{description}</p>
+    <p>
+      The starter is deliberately small: one layout, one homepage, a 404 page
+      and a few build integrations. Most of what it does happens out of sight,
+      in the head of each page and in the files the build writes next to them.
+      These guides explain those parts, so you can rely on them or change them
+      knowingly. The repository's README is the full reference, with every
+      layout prop and configuration value; the guides give the reasons and the
+      order in which to do things.
+    </p>
+
+    <section aria-labelledby="guides">
+      <h2 id="guides">Guides</h2>
+      <dl>
+        {guides.map(guide => (
+          <>
+            <dt><a href={`${home}docs/${guide.path}`}>{guide.title}</a></dt>
+            <dd>{guide.description}</dd>
+          </>
+        ))}
+      </dl>
+    </section>
+
+    <section aria-labelledby="where-to-start">
+      <h2 id="where-to-start">Where to start</h2>
+      <p>
+        If you have just created a copy, read
+        <a href={`${home}docs/make-it-yours/`}>Making the starter yours</a>
+        first: it walks through the production URL, the site name and author,
+        the icons and the homepage. Read the
+        <a href={`${home}docs/seo/`}>SEO and metadata guide</a> before you add
+        pages, because each page's title and description are the parts no
+        default can write for you. When you are ready to publish, the
+        <a href={`${home}docs/cloudflare-pages/`}>Cloudflare Pages guide</a>
+        gives the build settings, and the
+        <a href={`${home}docs/build-checks/`}>build checks guide</a> explains what
+        to do when a check fails.
+      </p>
+      <p>
+        These pages ship with the starter so that its own demo site explains
+        itself. In your copy they are optional: delete
+        <code>src/pages/docs/</code> and the documentation section of the
+        homepage, and the sitemap drops them on the next build.
+      </p>
+    </section>
+
+    <p><a href={home}>Back to the home page</a></p>
+  </main>
+</Layout>

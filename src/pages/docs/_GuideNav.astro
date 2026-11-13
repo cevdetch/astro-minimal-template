@@ -1,0 +1,20 @@
+---
+import { guides } from './_guides.ts';
+
+interface Props {
+  /** Path of the current guide, left out of the list. */
+  current: string;
+}
+
+const home = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
+const docs = `${home}docs/`;
+const others = guides.filter(guide => guide.path !== Astro.props.current);
+---
+
+<nav aria-labelledby="more-guides">
+  <h2 id="more-guides">More guides</h2>
+  <ul>
+    {others.map(guide => <li><a href={`${docs}${guide.path}`}>{guide.title}</a></li>)}
+  </ul>
+  <p><a href={docs}>All documentation</a> · <a href={home}>Home page</a></p>
+</nav>

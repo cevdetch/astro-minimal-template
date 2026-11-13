@@ -1,0 +1,141 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GuideNav from './_GuideNav.astro';
+import { guides } from './_guides.ts';
+
+const guide = guides.find(item => item.path === 'make-it-yours/')!;
+const config = `export const siteConfig: SiteConfig = {
+  name: 'Your project',
+  author: { name: 'Your name', url: 'https://example.com/' },
+  repository: 'https://github.com/you/your-project',
+  socialImages: true,
+};`;
+const page = `---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About" description="Who runs this project and why.">
+  <main>
+    <h1>About</h1>
+    <p>Write your page content here.</p>
+  </main>
+</Layout>`;
+---
+
+<Layout title={guide.title} description={guide.description}>
+  <main>
+    <h1>{guide.title}</h1>
+    <p>{guide.description}</p>
+    <p>
+      A copy of the starter still describes the starter: its name, its author,
+      its icons and these guides. The steps below replace each of those with
+      your own, in roughly the order you will want to do them. None of them needs
+      a new dependency.
+    </p>
+
+    <section aria-labelledby="copy">
+      <h2 id="copy">Get a copy</h2>
+      <p>
+        On GitHub, choose <q>Use this template</q> to create your own repository,
+        then clone it. Install with <code>pnpm install --frozen-lockfile</code> and
+        start the development server with <code>pnpm dev</code>. You need Node.js
+        24.8.0 or newer; pnpm's version is pinned in <code>package.json</code>.
+      </p>
+    </section>
+
+    <section aria-labelledby="url">
+      <h2 id="url">Set your production URL</h2>
+      <p>
+        Uncomment <code>site</code> in <code>astro.config.mjs</code> and set it to
+        your origin, such as <code>https://example.com</code>, or pass it with
+        <code>--site</code> when you build. The starter leaves it unset so a fork
+        never publishes canonical URLs for someone else's domain, and the build
+        fails until you supply one. Add <code>base</code> only if the site lives
+        under a subpath.
+      </p>
+    </section>
+
+    <section aria-labelledby="identity">
+      <h2 id="identity">Name the site and its author</h2>
+      <p>
+        <code>src/config.ts</code> holds everything that identifies the site:
+      </p>
+      <pre><code>{config}</code></pre>
+      <p>
+        <code>name</code> ends every inner page title and starts the homepage
+        title. <code>author</code> is credited in the footer and named as the
+        publisher in the homepage's structured data; <code>repository</code> is
+        linked from the footer. Delete either line to drop what it drives; with
+        neither, the footer disappears. <code>socialImages</code> switches the
+        generated title cards on or off.
+      </p>
+    </section>
+
+    <section aria-labelledby="pages">
+      <h2 id="pages">Write your pages</h2>
+      <p>
+        Rewrite <code>src/pages/index.astro</code>; keep <code>home</code> on its
+        layout and change its <code>title</code> to a short line on what your site
+        does. Add routes as files in <code>src/pages/</code>, each with its own
+        title and description:
+      </p>
+      <pre><code>{page}</code></pre>
+      <p>
+        Add styles and scripts the usual Astro way. The output checks allow them;
+        the starter simply ships none.
+      </p>
+    </section>
+
+    <section aria-labelledby="icons">
+      <h2 id="icons">Replace the icons</h2>
+      <p>
+        The starter ships a neutral C mark. Generate your own set with
+        <a href="https://favseed.cevdet.ch">favseed</a>: give it one SVG and it
+        returns <code>icon.svg</code>, <code>favicon.ico</code>,
+        <code>apple-touch-icon.png</code>, <code>icon-192.png</code> and
+        <code>icon-512.png</code>, all in the browser, with no upload. Copy them
+        into <code>public/</code> over the files with the same names, and replace
+        <code>logo.svg</code> with your own logo. The layout declares only
+        <code>favicon.ico</code>; the README shows how to add the Apple icon and a
+        web app manifest if you need them. Browsers cache icons hard, so check
+        in a private window after you deploy.
+      </p>
+    </section>
+
+    <section aria-labelledby="cards">
+      <h2 id="cards">Change or drop the title cards</h2>
+      <p>
+        Edit <code>src/lib/social-card.ts</code> to change the card artwork, and
+        keep the font's licence if you swap the font. To stop generating cards,
+        set <code>socialImages: false</code>; manual images keep working. The
+        README lists the files and the package to delete if you want the feature
+        gone entirely.
+      </p>
+    </section>
+
+    <section aria-labelledby="remove-docs">
+      <h2 id="remove-docs">Remove these guides</h2>
+      <p>
+        These guides describe the starter, not your project. When you no longer
+        need them, delete <code>src/pages/docs/</code> and the documentation
+        section of <code>src/pages/index.astro</code>. Nothing else refers to
+        them: the sitemap is built from the pages that exist, so it drops them on
+        the next build.
+      </p>
+    </section>
+
+    <section aria-labelledby="check">
+      <h2 id="check">Check and deploy</h2>
+      <p>
+        Run <code>pnpm verify</code> with your <code>site</code> configured. It
+        type-checks, runs both test suites, builds and audits the output. Then
+        follow the <a href="../cloudflare-pages/">Cloudflare Pages guide</a>, or
+        deploy the <code>dist/</code> directory to any static host that serves
+        <code>404.html</code> with a 404 status. Keep the MIT licence notice that
+        covers the starter's code.
+      </p>
+    </section>
+
+    <GuideNav current={guide.path} />
+  </main>
+</Layout>
