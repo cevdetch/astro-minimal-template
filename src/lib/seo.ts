@@ -1,6 +1,6 @@
 import type { Thing } from 'schema-dts';
 import {
-  graph, serializeJsonLd, softwareSourceCodeNode, websiteNode,
+  creditsOwnerElsewhere, graph, serializeJsonLd, softwareSourceCodeNode, websiteNode,
 } from './structured-data.ts';
 
 export type Direction = 'ltr' | 'rtl' | 'auto';
@@ -192,6 +192,19 @@ export function getStructuredData(input: StructuredDataInput): string | undefine
     }));
   }
   return nodes.length ? serializeJsonLd(graph(...nodes)) : undefined;
+}
+
+/**
+ * A build-time warning for a copy that still credits the starter's author
+ * from a host outside the author's own domain, as a fork does until its
+ * config changes. Returns undefined when there is nothing to warn about.
+ */
+export function getAuthorWarning(site: URL, author: unknown): string | undefined {
+  if (author === undefined) return undefined;
+  const person = validatePerson(author, 'siteConfig.author');
+  if (!creditsOwnerElsewhere(site, person)) return undefined;
+  return `siteConfig.author still credits ${person.name} (${person.url}) on ${site.origin}. `
+    + 'Set author in src/config.ts to your own name and site, or delete it to credit no one.';
 }
 
 /**

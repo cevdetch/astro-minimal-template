@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import { siteConfig } from './src/config.ts';
 import { siteValidation } from './src/integrations/site.ts';
 import { socialImages } from './src/integrations/social-images.ts';
 import { createIndexing } from './src/integrations/indexing.ts';
@@ -15,7 +16,7 @@ export default defineConfig({
   // Page URLs end in a slash, matching directory output on static hosts.
   trailingSlash: 'always',
   integrations: [
-    siteValidation(),
+    siteValidation({ author: siteConfig.author }),
     indexing.collect,
     socialImages(),
     sitemap({ filter: indexing.filter, customPages: indexing.sitemapPages }),
