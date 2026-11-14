@@ -183,11 +183,14 @@ test('the site name ends inner page titles and starts the homepage title', async
   }
 });
 
-test('footer credit and homepage publisher come from config and go when removed', async t => {
+test('footer credit and homepage structured data come from config and go when removed', async t => {
   const local = (props: Record<string, unknown>) => page(props).replace(JSON.stringify(layout), "'../layouts/Layout.astro'");
   const fixture = await createBuildFixture({
     configSource: "export default { site: 'https://example.test' };",
-    pages: { 'index.astro': local({ title: 'what it does', home: true }), 'about.astro': local({ title: 'About' }) },
+    pages: {
+      'index.astro': local({ title: 'what it does', home: true, sourceCode: true }),
+      'about.astro': local({ title: 'About' }),
+    },
   });
   t.after(() => fixture.cleanup());
   for (const path of ['lib', 'layouts', 'config.ts']) {
@@ -196,8 +199,10 @@ test('footer credit and homepage publisher come from config and go when removed'
   const footer = (html: string) => /<footer>[\s\S]*<\/footer>/.exec(html)?.[0];
   const jsonLd = (html: string) => [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
     .map(([, json]) => JSON.parse(json!) as Record<string, unknown>);
-  const { author, repository } = siteConfig;
-  assert.ok(author && repository, 'The shipped config credits an author and a repository.');
+  const { author, repository, license } = siteConfig;
+  assert.ok(author && repository && license, 'The shipped config credits an author, a repository and a licence.');
+  const credit = { '@type': 'Person', '@id': `${author.url}#person`, name: author.name, url: author.url };
+  const website = { '@type': 'WebSite', '@id': 'https://example.test/#website', url: 'https://example.test/', name: siteConfig.name, inLanguage: 'en' };
 
   let result = await fixture.build();
   assert.equal(result.code, 0, result.log);
@@ -206,10 +211,11 @@ test('footer credit and homepage publisher come from config and go when removed'
   for (const html of [home, about]) {
     assert.deepEqual(tags(footer(html) ?? '', 'a').map(tag => tag['href']), [author.url, repository]);
   }
-  assert.deepEqual(jsonLd(home), [{
-    '@context': 'https://schema.org', '@type': 'WebSite', name: siteConfig.name, url: 'https://example.test/',
-    publisher: { '@type': 'Person', '@id': `${author.url}#person`, name: author.name, url: author.url },
-  }]);
+  assert.deepEqual(jsonLd(home), [{ '@context': 'https://schema.org', '@graph': [{ ...website, publisher: credit }, {
+    '@type': 'SoftwareSourceCode', '@id': 'https://example.test/#code', url: 'https://example.test/',
+    mainEntityOfPage: 'https://example.test/', name: siteConfig.name, codeRepository: repository,
+    programmingLanguage: ['TypeScript', 'Astro'], license: `https://spdx.org/licenses/${license}.html`, author: credit,
+  }] }]);
   assert.deepEqual(jsonLd(about), []);
 
   const file = new URL('src/config.ts', fixture.root);
@@ -221,5 +227,5 @@ test('footer credit and homepage publisher come from config and go when removed'
   assert.equal(result.code, 0, result.log);
   home = await readFile(new URL('index.html', result.outDir), 'utf8');
   assert.equal(footer(home), undefined);
-  assert.deepEqual(jsonLd(home), [{ '@context': 'https://schema.org', '@type': 'WebSite', name: siteConfig.name, url: 'https://example.test/' }]);
+  assert.deepEqual(jsonLd(home), [{ '@context': 'https://schema.org', '@graph': [website] }]);
 });

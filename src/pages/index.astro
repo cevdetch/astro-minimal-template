@@ -2,12 +2,14 @@
 import { siteConfig } from '../config.ts';
 import Layout from '../layouts/Layout.astro';
 
-// With home, the document title reads "<site name>: <title>".
+// With home, the document title reads "<site name>: <title>". sourceCode
+// describes this page as the repository's code; drop it when the homepage
+// presents your site rather than its source.
 const title = 'a strict, SEO-ready Astro starter';
 const description = 'A minimal Astro starter with strictest TypeScript, shared metadata, automatic social images and browser-native styling.';
 ---
 
-<Layout home title={title} description={description}>
+<Layout home sourceCode title={title} description={description}>
   <main>
     <h1>{siteConfig.name}</h1>
     <p>{description}</p>

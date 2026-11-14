@@ -1,11 +1,18 @@
+import type { Thing } from 'schema-dts';
+import {
+  graph, serializeJsonLd, softwareSourceCodeNode, websiteNode,
+} from './structured-data.ts';
+
 export type Direction = 'ltr' | 'rtl' | 'auto';
 
+/** A person credited by name and the URL of their own site. */
 export interface Person { name: string; url: string }
 
 export interface LayoutProps {
   title: string;
   description: string;
   home?: boolean;
+  sourceCode?: boolean;
   lang?: string;
   dir?: Direction;
   canonical?: string | false;
@@ -23,6 +30,7 @@ export interface SeoContext {
   siteName?: string | undefined;
   author?: Person | undefined;
   repository?: string | undefined;
+  license?: string | undefined;
 }
 
 export interface PagePolicy { pathname: string; noindex: boolean }
@@ -143,19 +151,47 @@ function validatePerson(value: unknown, name: string): Person {
   return { name: requiredText(person['name'], `${name}.name`), url: absoluteUrl(person['url'], `${name}.url`) };
 }
 
-/**
- * Serializes homepage WebSite data. The publisher references the author's own
- * Person entity by @id, so every site by the same person links to one identity.
- * Escaping < keeps the JSON from closing its script element.
- */
-export function getWebSiteJsonLd(name: string, url: string, author: Person | undefined): string {
-  const data: Record<string, unknown> = { '@context': 'https://schema.org', '@type': 'WebSite', name, url };
-  if (author !== undefined) {
-    const id = new URL(author.url);
-    id.hash = 'person';
-    data['publisher'] = { '@type': 'Person', '@id': id.href, name: author.name, url: author.url };
+function spdxIdentifier(value: unknown, name: string): string {
+  if (typeof value !== 'string' || !/^[A-Za-z0-9.+-]+$/.test(value)) {
+    throw new Error(`${name} must be an SPDX licence identifier, such as MIT.`);
   }
-  return JSON.stringify(data).replaceAll('<', '\\u003c');
+  return value;
+}
+
+export interface StructuredDataInput {
+  /** The page's canonical URL, or its production URL without one. */
+  url: string;
+  siteName: string;
+  lang: string;
+  home: boolean;
+  sourceCode: boolean;
+  author?: Person | undefined;
+  repository?: string | undefined;
+  license?: string | undefined;
+}
+
+/**
+ * Serializes a page's JSON-LD graph, or returns undefined when it has none.
+ * The homepage carries a WebSite with the author as publisher. A page that
+ * presents the repository's code, such as a template's homepage, opts in to a
+ * SoftwareSourceCode node with `sourceCode`; it needs a repository to point at.
+ * Without an author, neither node credits anyone.
+ */
+export function getStructuredData(input: StructuredDataInput): string | undefined {
+  const nodes: Exclude<Thing, string>[] = [];
+  if (input.home) {
+    // null, not undefined: the builder would otherwise credit its own default publisher.
+    nodes.push(websiteNode({
+      url: input.url, name: input.siteName, inLanguage: input.lang, publisher: input.author ?? null,
+    }));
+  }
+  if (input.sourceCode && input.repository !== undefined) {
+    nodes.push(softwareSourceCodeNode({
+      url: input.url, name: input.siteName, codeRepository: input.repository,
+      programmingLanguage: ['TypeScript', 'Astro'], license: input.license, author: input.author ?? null,
+    }));
+  }
+  return nodes.length ? serializeJsonLd(graph(...nodes)) : undefined;
 }
 
 /**
@@ -173,6 +209,9 @@ export async function resolveSeo(props: LayoutProps, context: SeoContext): Promi
   if (props.home !== undefined && typeof props.home !== 'boolean') {
     throw new Error('home must be a boolean.');
   }
+  if (props.sourceCode !== undefined && typeof props.sourceCode !== 'boolean') {
+    throw new Error('sourceCode must be a boolean.');
+  }
   const siteName = context.siteName === undefined
     ? undefined : requiredText(context.siteName, 'siteConfig.name');
   const home = props.home ?? false;
@@ -180,6 +219,7 @@ export async function resolveSeo(props: LayoutProps, context: SeoContext): Promi
   const author = context.author === undefined ? undefined : validatePerson(context.author, 'siteConfig.author');
   const repository = context.repository === undefined
     ? undefined : absoluteUrl(context.repository, 'siteConfig.repository');
+  const license = context.license === undefined ? undefined : spdxIdentifier(context.license, 'siteConfig.license');
   const lang = props.lang === undefined ? 'en' : requiredText(props.lang, 'lang');
   if (props.dir !== undefined && !['ltr', 'rtl', 'auto'].includes(props.dir)) {
     throw new Error('dir must be ltr, rtl or auto.');
@@ -221,9 +261,11 @@ export async function resolveSeo(props: LayoutProps, context: SeoContext): Promi
     seo.canonicalUrl = props.canonical === undefined
       ? pageUrl : resolveProjectUrl(props.canonical, origin, context.base, 'canonical');
   }
-  if (home && siteName !== undefined) {
-    seo.jsonLd = getWebSiteJsonLd(siteName, seo.canonicalUrl ?? pageUrl, author);
-  }
+  const jsonLd = siteName === undefined ? undefined : getStructuredData({
+    url: seo.canonicalUrl ?? pageUrl, siteName, lang, home, sourceCode: props.sourceCode ?? false,
+    author, repository, license,
+  });
+  if (jsonLd !== undefined) seo.jsonLd = jsonLd;
   let imageUrl: string | undefined;
   if (src !== undefined) {
     imageUrl = resolveProjectUrl(src, origin, context.base, 'image');

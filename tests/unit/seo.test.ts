@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { formatTitle, getWebSiteJsonLd, resolveSeo, type LayoutProps, type SeoContext } from '../../src/lib/seo.ts';
+import { formatTitle, getStructuredData, resolveSeo, type LayoutProps, type SeoContext } from '../../src/lib/seo.ts';
 
 const props: LayoutProps = { title: 'A page', description: 'A page description.' };
 const context: SeoContext = {
@@ -165,28 +165,60 @@ test('the site name follows inner page titles and leads the homepage title', asy
   }
 });
 
-test('the homepage carries WebSite data whose publisher references the author', async () => {
-  const author = { name: 'Author', url: 'https://author.example.test' };
+const author = { name: 'Author', url: 'https://author.example.test' };
+const credit = { '@type': 'Person', '@id': 'https://author.example.test/#person', name: 'Author', url: 'https://author.example.test/' };
+const website = (url: string) => ({
+  '@type': 'WebSite', '@id': `${url}#website`, url, name: 'Site', inLanguage: 'en', publisher: credit,
+});
+const graph = (json: string | undefined) => JSON.parse(json!) as { '@context': string; '@graph': Record<string, unknown>[] };
+
+test('the homepage carries WebSite data whose publisher credits the author', async () => {
   const setup = { ...context, siteName: 'Site', author, repository: 'https://git.example.test/site' };
   const home = await resolveSeo({ ...props, home: true }, setup);
-  assert.deepEqual(JSON.parse(home.jsonLd!), {
-    '@context': 'https://schema.org', '@type': 'WebSite', name: 'Site', url: 'https://example.test/project/about/',
-    publisher: { '@type': 'Person', '@id': 'https://author.example.test/#person', name: 'Author', url: 'https://author.example.test/' },
+  assert.deepEqual(graph(home.jsonLd), {
+    '@context': 'https://schema.org', '@graph': [website('https://example.test/project/about/')],
   });
   assert.deepEqual(home.author, { name: 'Author', url: 'https://author.example.test/' });
   assert.equal(home.repository, 'https://git.example.test/site');
   const canonical = await resolveSeo({ ...props, home: true, canonical: '/' }, setup);
-  assert.equal(JSON.parse(canonical.jsonLd!).url, 'https://example.test/');
+  assert.deepEqual(graph(canonical.jsonLd)['@graph'], [website('https://example.test/')]);
+  const french = await resolveSeo({ ...props, home: true, lang: 'fr' }, setup);
+  assert.equal(graph(french.jsonLd)['@graph'][0]!['inLanguage'], 'fr');
   assert.equal((await resolveSeo(props, setup)).jsonLd, undefined);
   assert.equal((await resolveSeo({ ...props, home: true }, { ...setup, mode: 'dev', site: undefined })).jsonLd, undefined);
   assert.equal((await resolveSeo({ ...props, home: true }, { ...setup, siteName: undefined })).jsonLd, undefined);
+});
+
+test('sourceCode adds SoftwareSourceCode data for the configured repository', async () => {
+  const setup = { ...context, siteName: 'Site', author, repository: 'https://git.example.test/site', license: 'MIT' };
+  const home = await resolveSeo({ ...props, home: true, canonical: '/', sourceCode: true }, setup);
+  assert.deepEqual(graph(home.jsonLd)['@graph'], [website('https://example.test/'), {
+    '@type': 'SoftwareSourceCode', '@id': 'https://example.test/#code', url: 'https://example.test/',
+    mainEntityOfPage: 'https://example.test/', name: 'Site', codeRepository: 'https://git.example.test/site',
+    programmingLanguage: ['TypeScript', 'Astro'], license: 'https://spdx.org/licenses/MIT.html', author: credit,
+  }]);
+  const unlicensed = await resolveSeo({ ...props, home: true, sourceCode: true }, { ...setup, license: undefined });
+  assert.equal(graph(unlicensed.jsonLd)['@graph'][1]!['license'], undefined);
+  const repositoryless = await resolveSeo({ ...props, home: true, sourceCode: true }, { ...setup, repository: undefined });
+  assert.deepEqual(graph(repositoryless.jsonLd)['@graph'].map(node => node['@type']), ['WebSite']);
+  const inner = await resolveSeo({ ...props, sourceCode: true }, setup);
+  assert.deepEqual(graph(inner.jsonLd)['@graph'].map(node => node['@type']), ['SoftwareSourceCode']);
+  for (const sourceCode of ['true', 1]) {
+    await assert.rejects(resolveSeo({ ...props, sourceCode } as unknown as LayoutProps, setup), /sourceCode/);
+  }
+  for (const license of ['', 'MIT OR Apache-2.0', '../MIT']) {
+    await assert.rejects(resolveSeo(props, { ...setup, license }), /siteConfig\.license/);
+  }
 });
 
 test('an unset author or repository is omitted and invalid identity fails', async () => {
   const anonymous = await resolveSeo({ ...props, home: true }, { ...context, siteName: 'Site' });
   assert.equal(anonymous.author, undefined);
   assert.equal(anonymous.repository, undefined);
-  assert.equal(JSON.parse(anonymous.jsonLd!).publisher, undefined);
+  assert.equal(graph(anonymous.jsonLd)['@graph'][0]!['publisher'], undefined);
+  const uncredited = await resolveSeo({ ...props, home: true, sourceCode: true },
+    { ...context, siteName: 'Site', repository: 'https://git.example.test/site' });
+  assert.deepEqual(graph(uncredited.jsonLd)['@graph'].map(node => 'author' in node || 'publisher' in node), [false, false]);
   const invalid: Partial<SeoContext>[] = [
     { author: { name: ' ', url: 'https://author.example.test/' } },
     { author: { name: 'Author', url: '/relative/' } },
@@ -198,8 +230,9 @@ test('an unset author or repository is omitted and invalid identity fails', asyn
   }
 });
 
-test('WebSite data cannot close its script element', () => {
-  const json = getWebSiteJsonLd('</script><script>alert(1)</script>', 'https://example.test/', undefined);
-  assert.doesNotMatch(json, /</);
-  assert.equal(JSON.parse(json).name, '</script><script>alert(1)</script>');
+test('structured data cannot close its script element', () => {
+  const name = '</script><script>alert(1)</script>';
+  const json = getStructuredData({ url: 'https://example.test/', siteName: name, lang: 'en', home: true, sourceCode: false });
+  assert.doesNotMatch(json!, /</);
+  assert.equal(graph(json)['@graph'][0]!['name'], name);
 });
