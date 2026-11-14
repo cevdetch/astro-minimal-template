@@ -50,7 +50,7 @@ What the starter does for search engines on every build:
 
 - Writes an absolute, self-referencing canonical URL for each page, in the
   trailing-slash form the host serves.
-- Ends inner page titles with the site name (`Page · Site`) and starts the
+- Ends inner page titles with the site name (`Page - Site`) and starts the
   homepage title with it (`Site: what it does`).
 - Adds Open Graph tags, a 1200×630 title card and
   `twitter:card="summary_large_image"` to each eligible page.
@@ -295,8 +295,8 @@ import Layout from '../layouts/Layout.astro';
 
 ### Titles
 
-The layout adds the `name` from `src/config.ts` after each page title with a middle dot, so `title="About"`
-becomes `About · Your project`. On the homepage, pass `home` and describe what
+The layout adds the `name` from `src/config.ts` after each page title with a
+hyphen, so `title="About"` becomes `About - Your project`. On the homepage, pass `home` and describe what
 the site does in `title`; the site name then comes first:
 
 ```astro
