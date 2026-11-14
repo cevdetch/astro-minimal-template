@@ -101,15 +101,36 @@ const guide = guides.find(item => item.path === 'seo/')!;
     <section aria-labelledby="structured-data">
       <h2 id="structured-data">Structured data</h2>
       <p>
-        The homepage carries <code>WebSite</code> JSON-LD with the site name and
-        URL. When <code>src/config.ts</code> names an author, it is the publisher:
-        a <code>Person</code> whose <code>@id</code> is the author URL followed by
-        <code>#person</code>. If your own site describes you under that
-        <code>@id</code>, every project you publish points to one description of
-        you. Inner pages carry no structured data by default; add
+        The homepage carries one JSON-LD <code>@graph</code> with a
+        <code>WebSite</code> node: the site name, its URL and the page language.
+        When <code>src/config.ts</code> names an author, it is the publisher: a
+        <code>Person</code> with the author's name and URL, whose
+        <code>@id</code> is that URL followed by <code>#person</code>. If your
+        own site describes you under that <code>@id</code>, every project you
+        publish points to one description of you. Delete the author and the
+        node names no publisher.
+      </p>
+      <p>
+        The starter's own homepage also passes <code>sourceCode</code> to the
+        layout, which adds a <code>SoftwareSourceCode</code> node naming the
+        repository, TypeScript and Astro, the licence and the author. That fits a
+        template, whose homepage is about its code. Your copy is most likely a
+        site, so remove <code>sourceCode</code> from the homepage unless the page
+        presents your code; the footer's source link does not depend on it.
+      </p>
+      <p>
+        The starter ships crediting its own author. A build for a site outside
+        cevdet.ch that still credits that author prints a warning naming the
+        line to change in <code>src/config.ts</code>, so a copy does not publish
+        someone else as its author by accident.
+      </p>
+      <p>
+        Inner pages carry no structured data by default, and there is no generic
+        <code>WebPage</code> node, which search engines do not use. These guides
+        have no publication dates, so they carry no article data either. Add
         <code>Article</code> or <code>BreadcrumbList</code> where your content
         calls for it. FAQ and HowTo markup are not worth adding, because Google no
-        longer shows those results for most sites.
+        longer shows those results.
       </p>
     </section>
 

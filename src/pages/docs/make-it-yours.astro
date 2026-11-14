@@ -8,6 +8,7 @@ const config = `export const siteConfig: SiteConfig = {
   name: 'Your project',
   author: { name: 'Your name', url: 'https://example.com/' },
   repository: 'https://github.com/you/your-project',
+  license: 'MIT',
   socialImages: true,
 };`;
 const page = `---
@@ -66,8 +67,13 @@ import Layout from '../layouts/Layout.astro';
         title. <code>author</code> is credited in the footer and named as the
         publisher in the homepage's structured data; <code>repository</code> is
         linked from the footer. Delete either line to drop what it drives; with
-        neither, the footer disappears. <code>socialImages</code> switches the
+        neither, the footer disappears. <code>license</code> names the code's
+        licence in source code data, and <code>socialImages</code> switches the
         generated title cards on or off.
+      </p>
+      <p>
+        Until you change <code>author</code>, it credits the starter's author,
+        and a build for a site outside cevdet.ch prints a warning that says so.
       </p>
     </section>
 
@@ -76,7 +82,9 @@ import Layout from '../layouts/Layout.astro';
       <p>
         Rewrite <code>src/pages/index.astro</code>; keep <code>home</code> on its
         layout and change its <code>title</code> to a short line on what your site
-        does. Add routes as files in <code>src/pages/</code>, each with its own
+        does. Remove <code>sourceCode</code> unless your homepage presents your
+        repository's code, as the starter's does: it describes the page as
+        source code in the structured data. Add routes as files in <code>src/pages/</code>, each with its own
         title and description:
       </p>
       <pre><code>{page}</code></pre>

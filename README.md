@@ -54,7 +54,8 @@ What the starter does for search engines on every build:
   homepage title with it (`Site: what it does`).
 - Adds Open Graph tags, a 1200×630 title card and
   `twitter:card="summary_large_image"` to each eligible page.
-- Adds `WebSite` structured data to the homepage, with the author as publisher.
+- Adds `WebSite` structured data to the homepage, with the author as publisher,
+  and `SoftwareSourceCode` data to a page that opts in with `sourceCode`.
 - Generates a sitemap index that lists only indexable pages, and a robots.txt
   that allows crawling and names the sitemap.
 - Serves a `noindex` 404 page, and can mark single pages or a whole preview
@@ -67,8 +68,11 @@ What you still have to do:
 - Set the production `site`; the build fails without it.
 - Write a distinct title and a one- or two-sentence description for every
   page, and give the homepage a `home` title that says what the site does.
-- Set `name`, `author` and `repository` in `src/config.ts`, or delete the
-  lines you do not want.
+- Set `name`, `author`, `repository` and `license` in `src/config.ts`, or
+  delete the lines you do not want. The build warns while a site outside
+  cevdet.ch still credits the starter's author.
+- Remove `sourceCode` from the homepage's layout unless the homepage presents
+  your repository's code.
 - Check the generated title cards, or supply a manual `image` where a picture
   says more.
 - After the first deployment, add the site to Google Search Console and Bing
@@ -106,7 +110,7 @@ export default defineConfig({
   site: 'https://example.com',
   trailingSlash: 'always',
   integrations: [
-    siteValidation(),
+    siteValidation({ author: siteConfig.author }),
     indexing.collect,
     socialImages(),
     sitemap({ filter: indexing.filter, customPages: indexing.sitemapPages }),
@@ -177,6 +181,7 @@ export const siteConfig: SiteConfig = {
   name: 'Your project',
   author: { name: 'Your name', url: 'https://example.com/' },
   repository: 'https://github.com/you/your-project',
+  license: 'MIT',
   socialImages: true,
 };
 ```
@@ -185,31 +190,77 @@ export const siteConfig: SiteConfig = {
 Layout page ends with a plain footer: "By" and a link to `author.url`, then a link to
 `repository`. The homepage also carries
 [`WebSite` structured data](https://developers.google.com/search/docs/appearance/site-names)
-with the site name, its URL and the author as publisher:
+with the site name, its URL, the page language and the author as publisher, in
+one `@graph`:
 
 ```json
 {
   "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Your project",
-  "url": "https://your-project.example.com/",
-  "publisher": {
-    "@type": "Person",
-    "@id": "https://example.com/#person",
-    "name": "Your name",
-    "url": "https://example.com/"
-  }
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://your-project.example.com/#website",
+      "url": "https://your-project.example.com/",
+      "name": "Your project",
+      "inLanguage": "en",
+      "publisher": {
+        "@type": "Person",
+        "@id": "https://example.com/#person",
+        "name": "Your name",
+        "url": "https://example.com/"
+      }
+    }
+  ]
 }
 ```
 
 The publisher's `@id` is `author.url` with `#person` appended. If your own site
 describes you as a `Person` with that `@id`, the sites you publish all point to
-one description of you. Both URLs must be absolute HTTP(S) URLs;
+one description of you. Each node repeats the name and URL, because search
+engines read one page at a time. Both URLs must be absolute HTTP(S) URLs;
 invalid values fail the build.
+
+The starter ships crediting its own author, Cevdet Haran at
+`https://cevdet.ch/`. While `author` still names that site and the production
+`site` lies outside cevdet.ch, every build prints a warning that names the
+value to change, so a fork does not publish someone else as its author. The
+build still succeeds.
 
 Delete the `author` line to drop the credit and the publisher, or the
 `repository` line to drop the source link. With neither, the layout renders no
 footer. The structured data itself needs only `name` and `site`.
+
+### Source code data
+
+The starter's own homepage is about its code, so it passes `sourceCode` to the
+layout. That adds a `SoftwareSourceCode` node to the page's graph, with
+`repository` as `codeRepository`, TypeScript and Astro as languages, `license`
+as an SPDX URL and the author:
+
+```json
+{
+  "@type": "SoftwareSourceCode",
+  "@id": "https://your-project.example.com/#code",
+  "url": "https://your-project.example.com/",
+  "mainEntityOfPage": "https://your-project.example.com/",
+  "name": "Your project",
+  "codeRepository": "https://github.com/you/your-project",
+  "programmingLanguage": ["TypeScript", "Astro"],
+  "license": "https://spdx.org/licenses/MIT.html",
+  "author": { "@type": "Person", "@id": "https://example.com/#person", "name": "Your name", "url": "https://example.com/" }
+}
+```
+
+A copy of the starter is usually a site, not a template, and its homepage
+describes the site's content rather than its source. Remove `sourceCode` from
+`src/pages/index.astro` in that case; keeping `repository` for the footer link
+does not add the node. Keep it if your homepage does present your code, such as
+a library's or another template's. Without `repository`, `sourceCode` adds
+nothing. `license` takes one SPDX identifier, such as `MIT`; delete it to leave
+the licence out.
+
+No page carries a generic `WebPage` node, and the guides in `src/pages/docs/`
+carry no article data because they have no publication dates.
 
 ## Page metadata
 
@@ -235,6 +286,7 @@ import Layout from '../layouts/Layout.astro';
 | `title` | `string`, required | Page title; with the site name added, the HTML title and, when an image exists, Open Graph title |
 | `description` | `string`, required | HTML description and, when an image exists, Open Graph description |
 | `home` | `boolean` | Defaults to `false`; `true` puts the site name first and adds `WebSite` structured data, for the homepage |
+| `sourceCode` | `boolean` | Defaults to `false`; `true` adds `SoftwareSourceCode` data for `repository`, for a page that presents the code |
 | `lang` | `string` | Defaults to `en`; supply a nonblank language tag |
 | `dir` | `'ltr' \| 'rtl' \| 'auto'` | Omitted by default; set direction when needed |
 | `canonical` | `string \| false` | Defaults to the production page URL; override it or pass `false` to omit the link |
@@ -594,7 +646,7 @@ Offline behavior requires a separate implementation; this recipe adds metadata.
 
 ## Maintainer
 
-Created and maintained by [Cevdet](https://cevdet.ch/)
+Created and maintained by [Cevdet Haran](https://cevdet.ch/)
 ([@cevdetch](https://github.com/cevdetch)).
 
 ## License
