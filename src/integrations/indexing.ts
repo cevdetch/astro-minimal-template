@@ -60,7 +60,7 @@ export function createIndexing() {
                 .some(candidate => new URL(encodeURI(candidate), dir).href === file.href);
             });
             if (matches.length !== 1) throw new Error(`Ambiguous emitted output: ${file.href}. Use distinct route filenames.`);
-            const path = matches[0]!.pathname.replace(/^\/|\/$/g, '');
+            const path = encodeURI(matches[0]!.pathname.replace(/^\/|\/$/g, ''));
             const directory = config.build.format === 'directory'
               || (config.build.format === 'preserve' && (relative === 'index.html' || relative.endsWith('/index.html')));
             const pathname = directory

@@ -54,7 +54,7 @@ for (const base of ['/', '/project/']) {
         assert.equal(receipt.pages.length, 11);
         assert.ok(!receipt.pages.some(record => record.url.includes('unrelated')));
         const ending = format === 'directory' ? '/' : '.html';
-        const expected = ['', 'about', 'plain', 'caf%C3%A9', 'a%2Fb', 'a%252Fb'].map(route =>
+        const expected = ['', 'about', 'plain', 'caf%C3%A9', 'a%252Fb', 'a%25252Fb'].map(route =>
           `https://example.test${base}${route ? route + ending : format === 'file' ? 'index.html' : ''}`).sort();
         const index = await readFile(new URL('sitemap-index.xml', result.outDir), 'utf8');
         assert.deepEqual(locs(index), [`https://example.test${base}sitemap-0.xml`]);

@@ -118,7 +118,7 @@ export function socialImages(): AstroIntegration {
             files.add(file.href);
             const candidates = matches.get(file.href);
             if (candidates?.length !== 1) throw new Error(`Ambiguous emitted title card output: ${file.href}. Use distinct route filenames.`);
-            const path = candidates[0]!;
+            const path = encodeURI(candidates[0]!);
             const directory = config.build.format === 'directory'
               || (config.build.format === 'preserve' && (relative === 'index.html' || relative.endsWith('/index.html')));
             const pathname = directory

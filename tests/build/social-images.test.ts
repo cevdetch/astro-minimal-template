@@ -177,7 +177,7 @@ test('physical removal builds manual metadata and crawlers with normal remaining
   await promisify(execFile)('pnpm', ['remove', '-D', 'satori'], { cwd: fixture.root, maxBuffer: 1024 * 1024 });
   const manifest = JSON.parse(await readFile(new URL('package.json', fixture.root), 'utf8')) as {devDependencies: Record<string,string>};
   assert.equal(manifest.devDependencies['satori'], undefined);
-  assert.equal(manifest.devDependencies['parse5'], '8.0.1');
+  assert.equal(manifest.devDependencies['parse5'], '8.1.1');
   await promisify(execFile)('pnpm', ['check'], { cwd: fixture.root, maxBuffer: 1024 * 1024 });
   const result = await fixture.build(); assert.equal(result.code, 0, result.log);
   await promisify(execFile)('pnpm', ['verify:output'], { cwd: fixture.root, maxBuffer: 1024 * 1024 });
