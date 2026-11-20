@@ -27,8 +27,8 @@ const seo = await resolveSeo(Astro.props, {
   >
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
     <title>{seo.title}</title>
+    <meta name="generator" content={Astro.generator} />
     <link rel="icon" href={seo.faviconHref} />
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content={seo.description} />

@@ -81,6 +81,11 @@ export default { site: 'https://example.test', base: ${JSON.stringify(base)},
       assert.ok(charset >= 0 && charset < 1024);
       assert.ok(home.indexOf('charset=') < home.indexOf('name="viewport"'));
       assert.ok(home.indexOf('name="viewport"') < home.indexOf('<title>'));
+      // capo.js order: only charset and viewport come before the title.
+      const head = /<head\b[^>]*>([\s\S]*?)<\/head>/.exec(home)?.[1] ?? '';
+      const elements = [...head.matchAll(/<(?:base|link|meta|script|style|title)\b[^>]*>/g)].map(([tag]) => tag);
+      assert.deepEqual(elements.slice(0, elements.findIndex(tag => tag.startsWith('<title'))),
+        ['<meta charset="utf-8">', '<meta name="viewport" content="width=device-width">']);
       // The catalogue's reviewers confirm a theme is built with Astro from this tag.
       assert.match(meta(home, 'generator')[0] ?? '', /^Astro v\d/);
       assert.doesNotMatch(home, /<style\b|<script\b|data-starter-|_social\/|rel="manifest"|apple-touch-icon|name="theme-color"/);
