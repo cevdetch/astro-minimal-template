@@ -170,11 +170,14 @@ test('physical removal builds manual metadata and crawlers with normal remaining
     await rm(new URL(`src/${path}`, fixture.root), { recursive: true });
   }
   await writeFile(new URL('src/pages/index.astro', fixture.root), page('{image:{src:"/_social/manual.png"}}'));
-  for (const path of ['package.json', 'pnpm-lock.yaml', 'tsconfig.json']) {
+  for (const path of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'tsconfig.json']) {
     await cp(new URL(`../../${path}`, import.meta.url), new URL(path, fixture.root));
   }
   await cp(new URL('../../scripts/', import.meta.url), new URL('scripts/', fixture.root), { recursive: true });
+  const lockfile = new URL('../../pnpm-lock.yaml', import.meta.url);
+  const lock = await readFile(lockfile, 'utf8');
   await promisify(execFile)('pnpm', ['remove', '-D', 'satori'], { cwd: fixture.root, maxBuffer: 1024 * 1024 });
+  assert.equal(await readFile(lockfile, 'utf8'), lock, 'Removing the package changes only the fixture lockfile.');
   const manifest = JSON.parse(await readFile(new URL('package.json', fixture.root), 'utf8')) as {devDependencies: Record<string,string>};
   assert.equal(manifest.devDependencies['satori'], undefined);
   assert.equal(manifest.devDependencies['parse5'], '8.1.1');
