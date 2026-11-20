@@ -12,7 +12,13 @@ with no application JavaScript, author CSS or downloaded webfont.
 
 ## Setup
 
-Create a repository with [Use this template](https://github.com/cevdetch/astro-minimal-template/generate),
+Create a project from this template with the Astro CLI:
+
+```sh
+pnpm create astro@latest --template cevdetch/astro-minimal-template
+```
+
+Or create a repository with [Use this template](https://github.com/cevdetch/astro-minimal-template/generate),
 then clone your copy.
 
 Run these commands from the project root:
@@ -37,10 +43,12 @@ Open the local URL from the server output. Use `pnpm dev status`,
 5. Delete `src/pages/docs/` and the documentation section of
    `src/pages/index.astro` when you no longer need the guides. They describe
    the starter, not your project; the sitemap drops them on the next build.
+   The tests in `tests/demo/` cover only this demo content and skip themselves
+   once it is gone; delete them with the guides.
 6. Run `pnpm verify` with your `site` configured, then deploy.
 
 The guides in `src/pages/docs/` are published at
-[astro-minimal-template.cevdet.ch/docs/](https://astro-minimal-template.cevdet.ch/docs/).
+[astro-minimal-template.pages.dev/docs/](https://astro-minimal-template.pages.dev/docs/).
 They cover the metadata defaults, the build checks, deploying to Cloudflare
 Pages and these steps in more detail.
 
@@ -69,8 +77,7 @@ What you still have to do:
 - Write a distinct title and a one- or two-sentence description for every
   page, and give the homepage a `home` title that says what the site does.
 - Set `name`, `author`, `repository` and `license` in `src/config.ts`, or
-  delete the lines you do not want. The build warns while a site outside
-  cevdet.ch still credits the starter's author.
+  delete the lines you do not want. The starter ships a placeholder author.
 - Remove `sourceCode` from the homepage's layout unless the homepage presents
   your repository's code.
 - Check the generated title cards, or supply a manual `image` where a picture
@@ -110,7 +117,7 @@ export default defineConfig({
   site: 'https://example.com',
   trailingSlash: 'always',
   integrations: [
-    siteValidation({ author: siteConfig.author }),
+    siteValidation(),
     indexing.collect,
     socialImages(),
     sitemap({ filter: indexing.filter, customPages: indexing.sitemapPages }),
@@ -180,7 +187,7 @@ you deploy:
 export const siteConfig: SiteConfig = {
   name: 'Your project',
   author: { name: 'Your name', url: 'https://example.com/' },
-  repository: 'https://github.com/you/your-project',
+  repository: 'https://example.com/your-project',
   license: 'MIT',
   socialImages: true,
 };
@@ -220,11 +227,8 @@ one description of you. Each node repeats the name and URL, because search
 engines read one page at a time. Both URLs must be absolute HTTP(S) URLs;
 invalid values fail the build.
 
-The starter ships crediting its own author, Cevdet Haran at
-`https://cevdet.ch/`. While `author` still names that site and the production
-`site` lies outside cevdet.ch, every build prints a warning that names the
-value to change, so a fork does not publish someone else as its author. The
-build still succeeds.
+The starter ships a placeholder author, `Your Name` at `https://example.com/`.
+Replace it with your own name and site before you deploy.
 
 Delete the `author` line to drop the credit and the publisher, or the
 `repository` line to drop the source link. With neither, the layout renders no
@@ -244,7 +248,7 @@ as an SPDX URL and the author:
   "url": "https://your-project.example.com/",
   "mainEntityOfPage": "https://your-project.example.com/",
   "name": "Your project",
-  "codeRepository": "https://github.com/you/your-project",
+  "codeRepository": "https://example.com/your-project",
   "programmingLanguage": ["TypeScript", "Astro"],
   "license": "https://spdx.org/licenses/MIT.html",
   "author": { "@type": "Person", "@id": "https://example.com/#person", "name": "Your name", "url": "https://example.com/" }
@@ -507,8 +511,8 @@ static `icon.svg`, `apple-touch-icon.png` at 180×180, and opaque, padded
 `icon-192.png` and `icon-512.png`. These extra assets have no declarations in the
 starter page; use them when adding your project's logo or installation metadata.
 
-To replace the set, use [favseed](https://favseed.cevdet.ch), the favicon utility
-by cevdetch. Generate the files from your own SVG and copy them into `public/`,
+To replace the set, use [favseed](https://github.com/cevdetch/favseed), a
+browser-based favicon generator. Generate the files from your own SVG and copy them into `public/`,
 replacing the existing files with the same names:
 
 ```text
@@ -560,7 +564,7 @@ probing manual images. It also checks sitemap chunks and robots references
 against the recorded selection. Pages that bypass Layout keep their own
 metadata policy. Consumer CSS, JavaScript and fonts are allowed.
 
-[deadhead](https://deadhead.cevdet.ch/install) audits HTML across the recorded
+[deadhead](https://www.npmjs.com/package/deadhead) audits HTML across the recorded
 output directory, including copied public HTML. The wrapper uses the published
 CLI's default rules and failure threshold, preserves its nonzero exit status,
 and leaves files unchanged. It supplies no fixes, rule overrides or baseline.
@@ -643,11 +647,6 @@ HTTPS; localhost and loopback addresses support local checks. Installation UI an
 support vary by browser and platform; see the
 [manifest installation requirements](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable).
 Offline behavior requires a separate implementation; this recipe adds metadata.
-
-## Maintainer
-
-Created and maintained by [Cevdet Haran](https://cevdet.ch/)
-([@cevdetch](https://github.com/cevdetch)).
 
 ## License
 

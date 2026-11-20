@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { formatTitle, getAuthorWarning, getStructuredData, resolveSeo, type LayoutProps, type SeoContext } from '../../src/lib/seo.ts';
+import { formatTitle, getStructuredData, resolveSeo, type LayoutProps, type SeoContext } from '../../src/lib/seo.ts';
 
 const props: LayoutProps = { title: 'A page', description: 'A page description.' };
 const context: SeoContext = {
@@ -235,17 +235,4 @@ test('structured data cannot close its script element', () => {
   const json = getStructuredData({ url: 'https://example.test/', siteName: name, lang: 'en', home: true, sourceCode: false });
   assert.doesNotMatch(json!, /</);
   assert.equal(graph(json)['@graph'][0]!['name'], name);
-});
-
-test('the build warns while a site outside cevdet.ch credits the starter author', () => {
-  const starterAuthor = { name: 'Cevdet Haran', url: 'https://cevdet.ch' };
-  const warning = getAuthorWarning(new URL('https://fork.example.test'), starterAuthor);
-  assert.match(warning!, /siteConfig\.author still credits Cevdet Haran \(https:\/\/cevdet\.ch\/\) on https:\/\/fork\.example\.test/);
-  assert.match(warning!, /src\/config\.ts/);
-  for (const site of ['https://cevdet.ch', 'https://astro-minimal-template.cevdet.ch']) {
-    assert.equal(getAuthorWarning(new URL(site), starterAuthor), undefined);
-  }
-  assert.equal(getAuthorWarning(new URL('https://fork.example.test'), author), undefined);
-  assert.equal(getAuthorWarning(new URL('https://fork.example.test'), undefined), undefined);
-  assert.throws(() => getAuthorWarning(new URL('https://fork.example.test'), { name: 'Cevdet Haran', url: '/' }), /siteConfig\.author\.url/);
 });

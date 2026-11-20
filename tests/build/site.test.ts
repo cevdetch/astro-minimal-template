@@ -5,9 +5,9 @@ import { createBuildFixture } from '../helpers/build-fixture.ts';
 
 const integration = new URL('../../src/integrations/site.ts', import.meta.url).href;
 const page = '<!doctype html><html lang="en"><head><title>Fixture</title></head><body><h1>Fixture</h1></body></html>';
-const config = (fields = '', options = '') => `
+const config = (fields = '') => `
 import { siteValidation } from ${JSON.stringify(integration)};
-export default { integrations: [siteValidation(${options})], ${fields} };
+export default { integrations: [siteValidation()], ${fields} };
 `;
 
 test('a missing production site fails before rendering with configuration guidance', async t => {
@@ -74,19 +74,4 @@ export default {
   const result = await fixture.build();
   assert.notEqual(result.code, 0, result.log);
   assert.match(result.log, /site.*astro\.config\.mjs/);
-});
-
-test('a build outside cevdet.ch that still credits the starter author warns once and succeeds', async t => {
-  const author = "{ author: { name: 'Cevdet Haran', url: 'https://cevdet.ch/' } }";
-  const fixture = await createBuildFixture({
-    configSource: config('', author), pages: { 'index.astro': page, 'about.astro': page },
-  });
-  t.after(() => fixture.cleanup());
-  const warning = /siteConfig\.author still credits Cevdet Haran \(https:\/\/cevdet\.ch\/\)/g;
-  let result = await fixture.build(['--site', 'https://fork.example.test']);
-  assert.equal(result.code, 0, result.log);
-  assert.equal(result.log.match(warning)?.length, 1, result.log);
-  result = await fixture.build(['--site', 'https://astro-minimal-template.cevdet.ch']);
-  assert.equal(result.code, 0, result.log);
-  assert.doesNotMatch(result.log, warning);
 });

@@ -81,7 +81,9 @@ export default { site: 'https://example.test', base: ${JSON.stringify(base)},
       assert.ok(charset >= 0 && charset < 1024);
       assert.ok(home.indexOf('charset=') < home.indexOf('name="viewport"'));
       assert.ok(home.indexOf('name="viewport"') < home.indexOf('<title>'));
-      assert.doesNotMatch(home, /<style\b|<script\b|data-starter-|_social\/|name="generator"|rel="manifest"|apple-touch-icon|name="theme-color"/);
+      // The catalogue's reviewers confirm a theme is built with Astro from this tag.
+      assert.match(meta(home, 'generator')[0] ?? '', /^Astro v\d/);
+      assert.doesNotMatch(home, /<style\b|<script\b|data-starter-|_social\/|rel="manifest"|apple-touch-icon|name="theme-color"/);
       noSocial(home);
 
       const manual = await read(routeFile('nested/manual'));
@@ -193,16 +195,27 @@ test('footer credit and homepage structured data come from config and go when re
     },
   });
   t.after(() => fixture.cleanup());
-  for (const path of ['lib', 'layouts', 'config.ts']) {
+  for (const path of ['lib', 'layouts']) {
     await cp(new URL(`../../src/${path}`, import.meta.url), new URL(`src/${path}`, fixture.root), { recursive: true });
   }
+  // A fixed config, so the test holds whatever a copy of the starter puts in src/config.ts.
+  const name = 'Fixture Site';
+  const author = { name: 'Fixture Author', url: 'https://author.example.test/' };
+  const repository = 'https://git.example.test/site';
+  const license = 'MIT';
+  await writeFile(new URL('src/config.ts', fixture.root), `export const siteConfig = {
+  name: ${JSON.stringify(name)},
+  author: ${JSON.stringify(author)},
+  repository: ${JSON.stringify(repository)},
+  license: ${JSON.stringify(license)},
+  socialImages: false,
+};
+`);
   const footer = (html: string) => /<footer>[\s\S]*<\/footer>/.exec(html)?.[0];
   const jsonLd = (html: string) => [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
     .map(([, json]) => JSON.parse(json!) as Record<string, unknown>);
-  const { author, repository, license } = siteConfig;
-  assert.ok(author && repository && license, 'The shipped config credits an author, a repository and a licence.');
   const credit = { '@type': 'Person', '@id': `${author.url}#person`, name: author.name, url: author.url };
-  const website = { '@type': 'WebSite', '@id': 'https://example.test/#website', url: 'https://example.test/', name: siteConfig.name, inLanguage: 'en' };
+  const website = { '@type': 'WebSite', '@id': 'https://example.test/#website', url: 'https://example.test/', name, inLanguage: 'en' };
 
   let result = await fixture.build();
   assert.equal(result.code, 0, result.log);
@@ -213,7 +226,7 @@ test('footer credit and homepage structured data come from config and go when re
   }
   assert.deepEqual(jsonLd(home), [{ '@context': 'https://schema.org', '@graph': [{ ...website, publisher: credit }, {
     '@type': 'SoftwareSourceCode', '@id': 'https://example.test/#code', url: 'https://example.test/',
-    mainEntityOfPage: 'https://example.test/', name: siteConfig.name, codeRepository: repository,
+    mainEntityOfPage: 'https://example.test/', name, codeRepository: repository,
     programmingLanguage: ['TypeScript', 'Astro'], license: `https://spdx.org/licenses/${license}.html`, author: credit,
   }] }]);
   assert.deepEqual(jsonLd(about), []);

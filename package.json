@@ -11,7 +11,7 @@
     "dev": "astro dev",
     "check": "astro check",
     "test": "node --test tests/unit/*.test.ts",
-    "test:build": "node --test tests/build/*.test.ts",
+    "test:build": "node --test tests/build/*.test.ts tests/demo/*.test.ts",
     "build": "astro build",
     "verify:output": "node scripts/verify-output.ts",
     "lint:html": "node scripts/lint-html.ts",
