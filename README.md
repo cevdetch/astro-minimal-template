@@ -500,6 +500,20 @@ support; the output checks allow both. See the
 [Astro documentation](https://docs.astro.build) for routing, components and
 configuration.
 
+Astro adds the CSS that components import, and their `<style>` blocks, at the
+end of `<head>`, after the page metadata. To load a site-wide stylesheet
+earlier, in the order [capo.js](https://rviscomi.github.io/capo.js/)
+recommends, import its URL in `src/layouts/Layout.astro` and link it right
+after the title. Astro still bundles, minifies and hashes the file:
+
+```astro
+---
+import stylesheet from '../styles/site.css?url';
+---
+<title>{seo.title}</title>
+<link rel="stylesheet" href={stylesheet} />
+```
+
 ## Starter assets
 
 The starter includes a replaceable neutral C mark. The page declares only
