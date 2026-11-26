@@ -38,9 +38,9 @@ import Layout from '../layouts/Layout.astro';
       <h2 id="copy">Get a copy</h2>
       <p>
         On GitHub, choose <q>Use this template</q> to create your own repository,
-        then clone it. Install with <code>pnpm install --frozen-lockfile</code> and
-        start the development server with <code>pnpm dev</code>. You need Node.js
-        24.8.0 or newer; pnpm's version is pinned in <code>package.json</code>.
+        then clone it. Install with <code>bun install --frozen-lockfile</code> and
+        start the development server with <code>bun run dev</code>. You need Node.js
+        24.8.0 or newer; Bun's version is pinned in <code>package.json</code>.
       </p>
     </section>
 
@@ -137,7 +137,7 @@ import Layout from '../layouts/Layout.astro';
     <section aria-labelledby="check">
       <h2 id="check">Check and deploy</h2>
       <p>
-        Run <code>pnpm verify</code> with your <code>site</code> configured. It
+        Run <code>bun run verify</code> with your <code>site</code> configured. It
         type-checks, runs both test suites, builds and audits the output. Then
         follow the <a href="../cloudflare-pages/">Cloudflare Pages guide</a>, or
         deploy the <code>dist/</code> directory to any static host that serves

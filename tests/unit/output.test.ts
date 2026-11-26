@@ -131,12 +131,12 @@ test('receipt reading rejects missing, malformed and unsafe metadata with build 
   const invalid: unknown[] = [null, [], {}, { ...fixture.receipt, version: 1 }, { ...fixture.receipt, site: 'file:///tmp/' }, { ...fixture.receipt, base: '../outside' }, { ...fixture.receipt, outDir: 'https://example.test/output/' }, { ...fixture.receipt, outDir: fixture.outDir.href.slice(0, -1) }, { ...fixture.receipt, format: 'unknown' }, { ...fixture.receipt, pages: [{ ...fixture.receipt.pages[0], file: new URL('../outside.html', fixture.outDir).href }] }, { ...fixture.receipt, pages: [{ ...fixture.receipt.pages[0], owned: 'false' }] }, { ...fixture.receipt, pages: [...fixture.receipt.pages, ...fixture.receipt.pages] }, { ...fixture.receipt, sitemapUrls: ['https://other.test/'] }];
   for (const value of invalid) {
     await writeFile(location, JSON.stringify(value));
-    await assert.rejects(() => readBuildReceipt(fixture.root), /pnpm build|successful build/i);
+    await assert.rejects(() => readBuildReceipt(fixture.root), /bun run build|successful build/i);
   }
   await writeFile(location, '{invalid');
-  await assert.rejects(() => readBuildReceipt(fixture.root), /pnpm build|successful build/i);
+  await assert.rejects(() => readBuildReceipt(fixture.root), /bun run build|successful build/i);
   await rm(location);
-  await assert.rejects(() => readBuildReceipt(fixture.root), /pnpm build|successful build/i);
+  await assert.rejects(() => readBuildReceipt(fixture.root), /bun run build|successful build/i);
 });
 
 test('verification and lint CLIs require a receipt instead of guessing dist', async t => {
@@ -144,7 +144,7 @@ test('verification and lint CLIs require a receipt instead of guessing dist', as
   await rm(new URL('.astro/starter-build.json', root));
   for (const script of ['verify-output', 'lint-html']) {
     const result = await runScript(script, root);
-    assert.notEqual(result.code, 0); assert.match(result.log, /pnpm build|successful build/i);
+    assert.notEqual(result.code, 0); assert.match(result.log, /bun run build|successful build/i);
   }
 });
 
@@ -176,7 +176,7 @@ test('receipt paths reject empty query and fragment delimiters', async t => {
       const pages = receipt.pages.map(page => ({ ...page, [field]: page[field] + delimiter }));
       const value = { ...receipt, pages, sitemapUrls: field === 'url' ? receipt.sitemapUrls.map(url => url + delimiter) : receipt.sitemapUrls };
       await writeFile(new URL('.astro/starter-build.json', root), JSON.stringify(value));
-      await assert.rejects(() => readBuildReceipt(root), /pnpm build|successful build/i);
+      await assert.rejects(() => readBuildReceipt(root), /bun run build|successful build/i);
     }
   }
 });
@@ -204,6 +204,6 @@ test('receipt rejects invalid generated image identities and ownership', async t
   ]) {
     const pages = receipt.pages.map(page => ({ ...page, ...change }));
     await writeFile(new URL('.astro/starter-build.json', root), JSON.stringify({ ...receipt, pages }));
-    await assert.rejects(() => readBuildReceipt(root), /pnpm build|successful build/i);
+    await assert.rejects(() => readBuildReceipt(root), /bun run build|successful build/i);
   }
 });

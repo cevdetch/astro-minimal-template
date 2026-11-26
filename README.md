@@ -8,14 +8,14 @@ with no application JavaScript, author CSS or downloaded webfont.
 ## Requirements
 
 - Node.js 24.8.0 or newer
-- pnpm 12.3.4, pinned in `package.json`
+- Bun 1.4.5, pinned in `package.json`
 
 ## Setup
 
 Create a project from this template with the Astro CLI:
 
 ```sh
-pnpm create astro@latest --template cevdetch/astro-minimal-template
+bun create astro@latest --template cevdetch/astro-minimal-template
 ```
 
 Or create a repository with [Use this template](https://github.com/cevdetch/astro-minimal-template/generate),
@@ -24,12 +24,12 @@ then clone your copy.
 Run these commands from the project root:
 
 ```sh
-pnpm install --frozen-lockfile
-pnpm dev --background
+bun install --frozen-lockfile
+bun run dev --background
 ```
 
-Open the local URL from the server output. Use `pnpm dev status`,
-`pnpm dev logs`, and `pnpm dev stop` to manage the background server.
+Open the local URL from the server output. Use `bun run dev status`,
+`bun run dev logs`, and `bun run dev stop` to manage the background server.
 
 ## Make it yours
 
@@ -45,7 +45,7 @@ Open the local URL from the server output. Use `pnpm dev status`,
    the starter, not your project; the sitemap drops them on the next build.
    The tests in `tests/demo/` cover only this demo content and skip themselves
    once it is gone; delete them with the guides.
-6. Run `pnpm verify` with your `site` configured, then deploy.
+6. Run `bun run verify` with your `site` configured, then deploy.
 
 The guides in `src/pages/docs/` are published at
 [astro-minimal-template.pages.dev/docs/](https://astro-minimal-template.pages.dev/docs/).
@@ -89,20 +89,20 @@ What you still have to do:
 
 | Command | Purpose |
 | --- | --- |
-| `pnpm check` | Check Astro and TypeScript files for errors |
-| `pnpm test` | Test metadata, URL resolution and title-card generation |
-| `pnpm test:build` | Check configuration and rendered metadata with real builds |
-| `pnpm build` | Build the static site into `dist/` |
-| `pnpm verify:output` | Validate the last recorded successful build output |
-| `pnpm lint:html` | Audit the recorded output directory with deadhead |
-| `pnpm verify` | Run type checks, both test suites, a fresh build, output checks and HTML audit |
-| `pnpm preview` | Preview the production build |
-| `pnpm astro --help` | Read Astro CLI help |
+| `bun run check` | Check Astro and TypeScript files for errors |
+| `bun run test` | Test metadata, URL resolution and title-card generation |
+| `bun run test:build` | Check configuration and rendered metadata with real builds |
+| `bun run build` | Build the static site into `dist/` |
+| `bun run verify:output` | Validate the last recorded successful build output |
+| `bun run lint:html` | Audit the recorded output directory with deadhead |
+| `bun run verify` | Run type checks, both test suites, a fresh build, output checks and HTML audit |
+| `bun run preview` | Preview the production build |
+| `bun run astro --help` | Read Astro CLI help |
 
-Use `pnpm preview status`, `pnpm preview logs` and `pnpm preview stop` to manage
+Use `bun run preview status`, `bun run preview logs` and `bun run preview stop` to manage
 the preview server.
 
-With `site` configured, run `pnpm verify` before committing changes. Astro's
+With `site` configured, run `bun run verify` before committing changes. Astro's
 build command alone does not run the type checker or tests.
 
 ## Production URL
@@ -147,7 +147,7 @@ For a subpath deployment, set `base: '/project/'` alongside the origin. Leave
 You can override the origin for one build without editing configuration:
 
 ```sh
-pnpm build --site https://example.com
+bun run build --site https://example.com
 ```
 
 The typed helpers in `src/lib/seo.ts` resolve relative metadata URLs against the
@@ -165,7 +165,7 @@ Use these build settings, replacing the example origin:
 | Setting | Value |
 | --- | --- |
 | Production branch | `main` |
-| Build command | `pnpm build --site https://example.com && pnpm verify:output && pnpm lint:html` |
+| Build command | `bun run build --site https://example.com && bun run verify:output && bun run lint:html` |
 | Build output directory | `dist` |
 | `NODE_VERSION` | `24.8.0` |
 | `PNPM_VERSION` | `12.3.4`, matching `packageManager` |
@@ -173,7 +173,7 @@ Use these build settings, replacing the example origin:
 Cloudflare documents these toolchain overrides in its
 [build image settings](https://developers.cloudflare.com/pages/configuration/build-image/#override-default-versions).
 If you set the real `site` in `astro.config.mjs`, the build command can start with
-`pnpm build` instead. Keep the production origin for preview builds too; set
+`bun run build` instead. Keep the production origin for preview builds too; set
 `SITE_NOINDEX=true` in Cloudflare's preview environment to add noindex metadata.
 Leave it unset for production. Add your domain in the project's custom-domain
 settings; the `site` value controls generated URLs and does not configure DNS.
@@ -425,9 +425,9 @@ disablement or a switch to a manual image.
    `src/lib/social-renderer.ts` and `src/assets/social-fonts/`.
 4. Remove `tests/unit/social-images.test.ts` and `tests/build/social-images.test.ts`,
    which test the feature you removed.
-5. Run `pnpm remove -D satori`. Keep `parse5` for indexing and Sharp for the
+5. Run `bun remove satori`. Keep `parse5` for indexing and Sharp for the
    output checks, which also use it to decode generated PNGs.
-6. Run `pnpm verify` with your `site` configured. Manual images, sitemap and
+6. Run `bun run verify` with your `site` configured. Manual images, sitemap and
    robots remain available. Removing the integration releases its reserved
    namespace.
 
@@ -436,7 +436,7 @@ disablement or a switch to a manual image.
 Set `SITE_NOINDEX=true` when building a preview that search engines should not index:
 
 ```sh
-SITE_NOINDEX=true pnpm build --site https://example.com
+SITE_NOINDEX=true bun run build --site https://example.com
 ```
 
 An unset value defaults to false. When set, use the exact string `true` or `false`;
@@ -549,19 +549,19 @@ asset URLs need revalidation; avoid immutable caching for them.
 
 ## Verification and updates
 
-`pnpm verify` runs `check`, `test`, `test:build`, `build`, `verify:output` and
+`bun run verify` runs `check`, `test`, `test:build`, `build`, `verify:output` and
 `lint:html` in order, stopping on a failure. Configure `site` before running it.
 
 The build tests exercise package removal too. That step may need registry access
-even after a frozen install, because pnpm validates dependency metadata.
+even after a frozen install, because Bun resolves dependency metadata.
 
 For a one-off build origin or output override, run the build and output checks
 as separate commands, alongside the type and test checks:
 
 ```sh
-pnpm build --site https://example.com --base /project/ --outDir ./site-output/
-pnpm verify:output
-pnpm lint:html
+bun run build --site https://example.com --base /project/ --outDir ./site-output/
+bun run verify:output
+bun run lint:html
 ```
 
 The build records its actual origin, base, output directory and emitted pages in
@@ -569,7 +569,7 @@ The build records its actual origin, base, output directory and emitted pages in
 changes to `site`, `base` or `outDir` carry through without editing a script.
 A missing or invalid receipt asks you to build first. These standalone commands
 inspect the recorded output; they do not rebuild after source changes. Use
-`pnpm verify` to validate a fresh build of your current source.
+`bun run verify` to validate a fresh build of your current source.
 
 The output verifier checks Layout pages for complete required metadata,
 canonical/social consistency and leaked internal markers. It decodes generated
@@ -584,12 +584,12 @@ CLI's default rules and failure threshold, preserves its nonzero exit status,
 and leaves files unchanged. It supplies no fixes, rule overrides or baseline.
 
 [CI](.github/workflows/ci.yml) runs these checks on Node 24.8.0 and the latest
-LTS using frozen pnpm installs and pinned Actions. Its build uses an explicit
+LTS using frozen Bun installs and pinned Actions. Its build uses an explicit
 `https://example.test` origin; the template's `site` remains yours to configure.
 The workflow has read-only repository permissions and performs verification.
 
 Update direct dependencies in reviewable changes and keep `packageManager` and
-`pnpm-lock.yaml` consistent. Run `pnpm verify` after upgrades. Review pinned
+`bun.lock` consistent. Run `bun run verify` after upgrades. Review pinned
 Action updates and keep the Node engine requirement and CI matrix aligned.
 For renderer or font changes, inspect short, long and multilingual cards;
 recheck glyph coverage, PNG dimensions, output size and build cost. Preserve the

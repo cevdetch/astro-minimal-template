@@ -3,19 +3,19 @@
   "type": "module",
   "version": "0.0.1",
   "license": "MIT",
-  "packageManager": "pnpm@12.3.4",
+  "packageManager": "bun@1.4.5",
   "engines": {
     "node": ">=24.8.0"
   },
   "scripts": {
     "dev": "astro dev",
     "check": "astro check",
-    "test": "node --test 'tests/unit/*.test.ts'",
+    "test": "bun test tests/unit",
     "test:build": "node --test 'tests/build/*.test.ts' 'tests/demo/*.test.ts'",
     "build": "astro build",
-    "verify:output": "node scripts/verify-output.ts",
-    "lint:html": "node scripts/lint-html.ts",
-    "verify": "pnpm check && pnpm test && pnpm test:build && pnpm build && pnpm verify:output && pnpm lint:html",
+    "verify:output": "bun scripts/verify-output.ts",
+    "lint:html": "bun scripts/lint-html.ts",
+    "verify": "bun --bun run check && bun run test && bun run test:build && bun --bun run build && bun --bun run verify:output && bun --bun run lint:html",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -32,5 +32,8 @@
     "schema-dts": "2.1.0",
     "sharp": "0.35.5",
     "typescript": "6.0.3"
+  },
+  "overrides": {
+    "@emnapi/runtime": "1.11.3"
   }
 }

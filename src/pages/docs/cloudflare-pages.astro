@@ -34,7 +34,7 @@ const headers = `https://:project.pages.dev/*
         <dt>Production branch</dt>
         <dd><code>main</code></dd>
         <dt>Build command</dt>
-        <dd><code>{'pnpm build --site https://example.com && pnpm verify:output && pnpm lint:html'}</code></dd>
+        <dd><code>{'bun run build --site https://example.com && bun run verify:output && bun run lint:html'}</code></dd>
         <dt>Build output directory</dt>
         <dd><code>dist</code></dd>
         <dt>Environment variables</dt>
@@ -45,7 +45,7 @@ const headers = `https://:project.pages.dev/*
         it into the source, which keeps a fresh fork from publishing canonical
         URLs that point at someone else's domain. If you set <code>site</code> in
         <code>astro.config.mjs</code> instead, the command can start with
-        <code>pnpm build</code>. The two checks after the build read the record it
+        <code>bun run build</code>. The two checks after the build read the record it
         leaves behind; if either fails, the deployment fails and the previous one
         stays live. The <a href="../build-checks/">build checks guide</a> explains
         what they look for.

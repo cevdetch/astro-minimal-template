@@ -89,6 +89,6 @@ export async function readBuildReceipt(root: URL): Promise<BuildReceipt> {
     return { version: 2, site: origin.href, base, outDir: dir.href, format, pages, sitemapUrls };
   } catch (cause) {
     const detail = cause instanceof Error ? cause.message : String(cause);
-    throw new Error(`No valid successful build receipt: ${detail} Run pnpm build with site configured before checking output.`, { cause });
+    throw new Error(`No valid successful build receipt: ${detail} Run bun run build with site configured before checking output.`, { cause });
   }
 }

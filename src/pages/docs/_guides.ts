@@ -16,7 +16,7 @@ export const guides: readonly Guide[] = [
   {
     path: 'build-checks/',
     title: 'Checking an Astro build before it ships',
-    description: 'What pnpm verify runs, what the output checks and the deadhead HTML audit catch, and why a plain astro build is not enough.',
+    description: 'What bun run verify runs, what the output checks and the deadhead HTML audit catch, and why a plain astro build is not enough.',
   },
   {
     path: 'cloudflare-pages/',
