@@ -168,7 +168,7 @@ Use these build settings, replacing the example origin:
 | Build command | `bun run build --site https://example.com && bun run verify:output && bun run lint:html` |
 | Build output directory | `dist` |
 | `NODE_VERSION` | `24.8.0` |
-| `PNPM_VERSION` | `12.3.4`, matching `packageManager` |
+| `BUN_VERSION` | `1.4.5`, matching `packageManager` |
 
 Cloudflare documents these toolchain overrides in its
 [build image settings](https://developers.cloudflare.com/pages/configuration/build-image/#override-default-versions).
