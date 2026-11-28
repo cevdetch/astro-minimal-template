@@ -15,7 +15,8 @@
     "build": "astro build",
     "verify:output": "bun scripts/verify-output.ts",
     "lint:html": "bun scripts/lint-html.ts",
-    "verify": "bun --bun run check && bun run test && bun run test:build && bun --bun run build && bun --bun run verify:output && bun --bun run lint:html",
+    "lint:unused": "knip",
+    "verify": "bun --bun run check && bun run lint:unused && bun run test && bun run test:build && bun --bun run build && bun --bun run verify:output && bun --bun run lint:html",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -27,6 +28,7 @@
     "@astrojs/sitemap": "3.7.6",
     "@types/node": "24.8.0",
     "deadhead": "0.4.0",
+    "knip": "6.49.0",
     "parse5": "8.1.1",
     "satori": "0.63.2",
     "schema-dts": "2.1.0",

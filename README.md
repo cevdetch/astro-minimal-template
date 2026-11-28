@@ -90,12 +90,13 @@ What you still have to do:
 | Command | Purpose |
 | --- | --- |
 | `bun run check` | Check Astro and TypeScript files for errors |
+| `bun run lint:unused` | Find unused files, exports and dependencies with knip |
 | `bun run test` | Test metadata, URL resolution and title-card generation |
 | `bun run test:build` | Check configuration and rendered metadata with real builds |
 | `bun run build` | Build the static site into `dist/` |
 | `bun run verify:output` | Validate the last recorded successful build output |
 | `bun run lint:html` | Audit the recorded output directory with deadhead |
-| `bun run verify` | Run type checks, both test suites, a fresh build, output checks and HTML audit |
+| `bun run verify` | Run type checks, the unused-code check, both test suites, a fresh build, output checks and HTML audit |
 | `bun run preview` | Preview the production build |
 | `bun run astro --help` | Read Astro CLI help |
 
@@ -549,7 +550,7 @@ asset URLs need revalidation; avoid immutable caching for them.
 
 ## Verification and updates
 
-`bun run verify` runs `check`, `test`, `test:build`, `build`, `verify:output` and
+`bun run verify` runs `check`, `lint:unused`, `test`, `test:build`, `build`, `verify:output` and
 `lint:html` in order, stopping on a failure. Configure `site` before running it.
 
 The build tests exercise package removal too. That step may need registry access
